@@ -19,8 +19,10 @@ class DbCustom(Base):
 
 class DbKeys(Base):
     __tablename__ = "api_keys"
-    api_key = Column(String, primary_key=True)
-    email = Column(String, nullable=False)
+    email = Column(String, primary_key=True, nullable=False)
+    username = Column(String, nullable=False)
+    api_key = Column(String, nullable=False)
     activation_link = Column(String, nullable=False)
     link_send = Column(Boolean, nullable=False)
     activated = Column(Boolean, nullable=False)
+    expire_date = Column(DateTime, nullable=True)

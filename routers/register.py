@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, Path
+from fastapi import APIRouter, Request, Depends
 from sqlalchemy.orm.session import Session
 from schemas.schemas import NewKey, NewKeyResponse, ActivateResponse
 from database.database import db_session
@@ -21,4 +21,3 @@ def register_new_key(req: Request, data: NewKey, db: Session = Depends(db_sessio
                     )
 def activating_new_keys(req: Request, activation_key: str, db: Session = Depends(db_session)):
     return activate_new_key(req, activation_key, db)
-

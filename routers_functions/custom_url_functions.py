@@ -19,7 +19,7 @@ def create_new_custom(req: Request, data: CustomShort, db: Session) -> CustomSho
     new_custom = DbCustom(
         origin_url=data.origin_url,
         custom_url=new_custom,
-        expire_date=expire_date(6, 50)
+        expire_date=expire_date(days=10)
     )
     db.add(new_custom)
     db.commit()

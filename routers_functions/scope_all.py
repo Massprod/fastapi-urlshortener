@@ -36,6 +36,7 @@ def create_send_key(receiver: str, link: str, api_key: str) -> bool:
         email = os.getenv("EMAIL")
         email_key = os.getenv("EMAIL_KEY")
         msg = MIMEMultipart("alternative")
+
         html_part = f"""
                         <html>
                         <head></head>
@@ -44,6 +45,7 @@ def create_send_key(receiver: str, link: str, api_key: str) -> bool:
                             </body>
                         </html>
                     """
+
         html_part = MIMEText(html_part, "html")
         msg["Subject"] = "Shorty api-key"
         msg.attach(html_part)
@@ -52,10 +54,12 @@ def create_send_key(receiver: str, link: str, api_key: str) -> bool:
         con = smtplib.SMTP("smtp.gmail.com")
         con.starttls()
         con.login(user=email,
-                  password=email_key)
+                  password=email_key
+                  )
         con.sendmail(from_addr=email,
                      to_addrs=receiver,
-                     msg=msg)
+                     msg=msg
+                     )
         con.close()
         return True
     except smtplib.SMTPException:

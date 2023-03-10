@@ -19,7 +19,7 @@ def create_new_random(req: Request, data: RandomShort, db: Session) -> RandomSho
         try:
             new_short = DbRandom(origin_url=data.origin_url,
                                  rshort_url=short_url,
-                                 expire_date=expire_date(6, 50)
+                                 expire_date=expire_date(days=6)
                                  )
             db.add(new_short)
             db.commit()
