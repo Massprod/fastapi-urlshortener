@@ -10,7 +10,7 @@ class RandomShort(BaseModel):
 
 class RandomShortResponse(BaseModel):
     origin_url: str = "https://www.pythonanywhere.com/"
-    rshort_url: str = "https://hosting_name/mFh"
+    short_url: str = "https://hosting_name/mFh"
     expire_date: datetime = expire_date(days=7)
 
     class Config:

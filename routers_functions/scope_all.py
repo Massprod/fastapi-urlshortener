@@ -6,6 +6,9 @@ import string
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
+
+import sqlalchemy.exc
+
 from database.database import Base
 from sqlalchemy.orm import Session
 
@@ -27,7 +30,7 @@ def expire_date(days: int = 7, seconds: int = 0) -> datetime:
 
 
 def create_rshort(length: int = 3) -> str:
-    if length <= 2 or length >= 11:
+    if not 2 < length < 11:
         raise AttributeError("Length should be from 3 to 10")
     short = "".join(random.choices(string.ascii_letters + string.digits, k=length))
     return short
@@ -68,15 +71,53 @@ def create_send_key(receiver: str, link: str, api_key: str) -> bool:
         return False
 
 
-def is_expired(db_model: Base, db: Session, email: str = None, username: str = None, delete: bool = False):
-    all_exp_dates = db.query(db_model).with_entities(db_model.expire_date).all()
-    all_exp_dates = [_[0] for _ in all_exp_dates]
-    if delete:
-        deleted = {}
-        for _ in all_exp_dates:
-            if _ <= datetime.utcnow():
-                to_delete = db.query(db_model).filter_by(expire_date=_).all()
-                for _ in to_delete:
-                    db.delete(_)
-        db.commit()
-        return
+def del_expired(db_model: Base, db: Session, email: str = None,
+                username: str = None, del_one_short: str = None, delete_all: bool = False) -> bool:
+    if delete_all:
+        try:
+            all_exp_data = db.query(db_model).with_entities(db_model.expire_date).all()
+            all_exp_data = [_[0] for _ in all_exp_data]
+            for _ in all_exp_data:
+                if _ <= datetime.utcnow():
+                    to_delete = db.query(db_model).filter_by(expire_date=_).all()
+                    for _ in to_delete:
+                        db.delete(_)
+            db.commit()
+            return True
+        except AttributeError:
+            return False
+        except sqlalchemy.exc.SQLAlchemyError as error:
+            raise error
+    elif email:
+        try:
+            exp_data = db.query(db_model).filter_by(email=email).first()
+            if exp_data.expire_date <= datetime.utcnow():
+                db.delete(exp_data)
+            db.commit()
+            return True
+        except AttributeError:
+            return False
+        except sqlalchemy.exc.SQLAlchemyError as error:
+            raise error
+    elif username:
+        try:
+            exp_data = db.query(db_model).filter_by(username=username).first()
+            if exp_data.expire_date <= datetime.utcnow():
+                db.delete(exp_data)
+            db.commit()
+            return True
+        except AttributeError:
+            return False
+        except sqlalchemy.exc.SQLAlchemyError as error:
+            raise error
+    elif del_one_short:
+        try:
+            exp_data = db.query(db_model).filter_by(short_url=del_one_short).first()
+            if exp_data.expire_date <= datetime.utcnow():
+                db.delete(exp_data)
+            db.commit()
+            return True
+        except AttributeError:
+            return False
+        except sqlalchemy.exc.SQLAlchemyError as error:
+            raise error
