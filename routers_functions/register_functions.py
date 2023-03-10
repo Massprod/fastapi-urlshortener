@@ -54,8 +54,8 @@ def activate_new_key(req: Request, activation_key: str, db: Session):
         act_entity.activation_link = f"key: {activation_key} " \
                                      f"used: {dt.strftime(dt.utcnow(), '%Y.%m.%d')}"
         act_entity.activated = True
-        act_entity.expire_date = sqlalchemy.Null
+        act_entity.expire_date = None
         db.commit()
         return act_entity
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                        detail="Already activated or expired",)
+                        detail="already Activated or Expired",)

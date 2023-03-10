@@ -6,6 +6,8 @@ import string
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
+from database.database import Base
+from sqlalchemy.orm import Session
 
 
 def working_url(url: str, timeout: int = 4) -> bool:
@@ -64,3 +66,17 @@ def create_send_key(receiver: str, link: str, api_key: str) -> bool:
         return True
     except smtplib.SMTPException:
         return False
+
+
+def is_expired(db_model: Base, db: Session, email: str = None, username: str = None, delete: bool = False):
+    all_exp_dates = db.query(db_model).with_entities(db_model.expire_date).all()
+    all_exp_dates = [_[0] for _ in all_exp_dates]
+    if delete:
+        deleted = {}
+        for _ in all_exp_dates:
+            if _ <= datetime.utcnow():
+                to_delete = db.query(db_model).filter_by(expire_date=_).all()
+                for _ in to_delete:
+                    db.delete(_)
+        db.commit()
+        return

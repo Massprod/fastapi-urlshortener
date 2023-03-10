@@ -14,6 +14,7 @@ class DbCustom(Base):
     id = Column(Integer, primary_key=True, index=True)
     origin_url = Column(String(length=200), nullable=False)
     custom_url = Column(String(length=200), nullable=False)
+    api_key = Column(String, nullable=True)
     expire_date = Column(DateTime, nullable=False)
 
 
