@@ -7,7 +7,6 @@ from routers_functions.scope_all import working_url, expire_date, create_rshort,
 
 
 def create_new_random(req: Request, data: RandomShort, db: Session) -> RandomShortResponse:
-    del_expired(delete_all=True, db=db, db_model=DbRandom)
     if not working_url(data.origin_url):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Provided URL not responding or incorrect")
@@ -18,7 +17,7 @@ def create_new_random(req: Request, data: RandomShort, db: Session) -> RandomSho
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Length limited from 3 to 10")
         try:
-            print(del_expired(db_model=DbRandom, db=db, del_one_short=short_url))
+            del_expired(db_model=DbRandom, db=db, del_one_short=short_url)
             new_short = DbRandom(origin_url=data.origin_url,
                                  short_url=short_url,
                                  expire_date=expire_date(days=7, seconds=0)
