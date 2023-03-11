@@ -16,5 +16,12 @@ custom_router = APIRouter(prefix="/custom",
                     description="Creating custom named short URL for provided URL",
                     response_description="Return JSON with URL and CUSTOM version of it to redirect from",
                     )
-def add_new_custom(req: Request, data: CustomShort, db: Session = Depends(db_session), api_key: str = Header(None)):
+def add_new_custom(req: Request,
+                   data: CustomShort,
+                   db: Session = Depends(db_session),
+                   api_key: str = Header(None,
+                                         description="Optional HEADER. "
+                                                     "Used to mark API-KEY to created custom urls "
+                                                     "and expend expire limit to 30 days")
+                   ):
     return create_new_custom(req, data, db, api_key)

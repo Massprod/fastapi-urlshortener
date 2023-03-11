@@ -9,15 +9,23 @@ register_route = APIRouter(prefix="/register",
                            )
 
 
-@register_route.post("/new",
+@register_route.post(path="/new",
+                     name="register new api-key",
                      response_model=NewKeyResponse,
+                     description="Creating new API-KEY and sending to provided Email",
+                     response_description="Return JSON with registration data and sending "
+                                          "activation link to provided Email",
                      )
 def register_new_key(req: Request, data: NewKey, db: Session = Depends(db_session)):
     return add_new_key(req, data, db)
 
 
-@register_route.get("/activate/{activation_key}",
+@register_route.get(path="/activate/{activation_key}",
+                    name="activate registered api-key",
                     response_model=ActivateResponse,
+                    description="Change activation status for registered API-KEY via provided "
+                                "activation link",
+                    response_description="Return JSON with data about activated API-KEY",
                     )
 def activating_new_keys(req: Request, activation_key: str, db: Session = Depends(db_session)):
     return activate_new_key(req, activation_key, db)

@@ -1,23 +1,30 @@
 from fastapi import Request, HTTPException, status
-from sqlalchemy.orm.session import Session
-import sqlalchemy
-from schemas.schemas import NewKey
-from routers_functions.scope_all import create_send_key, create_rshort, expire_date
 from database.models import DbKeys
+from sqlalchemy.orm.session import Session
+from schemas.schemas import NewKey
+from routers_functions.scope_all import create_send_key, create_rshort, expire_date, del_expired
 from datetime import datetime as dt
 
 
 def add_new_key(req: Request, data: NewKey, db: Session):
     email = data.email.strip(" ")
     username = data.username.strip(" ")
-    email_used = db.query(DbKeys).filter(DbKeys.email == email).first()
-    username_used = db.query(DbKeys).filter(DbKeys.username == username).first()
+
+    try:
+        email_used = db.query(DbKeys).filter(DbKeys.email == email).first().email
+        del_expired(db_model=DbKeys, db=db, email=email_used)
+        username_used = db.query(DbKeys).filter(DbKeys.username == username).first().username
+        del_expired(db_model=DbKeys, db=db, username=username_used)
+    except AttributeError:
+        email_used = False
+        username_used = False
+
     if email_used:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Email already used: {email}")
     elif username_used:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f"username already used: {username}")
+                            detail=f"username already used: {username}",)
     while True:
         api_key = create_rshort(length=9)
         used = db.query(DbKeys).filter_by(api_key=api_key).first()
@@ -37,7 +44,7 @@ def add_new_key(req: Request, data: NewKey, db: Session):
                          activation_link=activation_link,
                          link_send=True,
                          activated=False,
-                         expire_date=expire_date(days=1)
+                         expire_date=expire_date(days=1, seconds=0)
                          )
         db.add(new_key)
         db.commit()
@@ -58,4 +65,4 @@ def activate_new_key(req: Request, activation_key: str, db: Session):
         db.commit()
         return act_entity
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                        detail="already Activated or Expired",)
+                        detail="Link already Activated or Expired",)
