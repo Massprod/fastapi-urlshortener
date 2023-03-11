@@ -101,6 +101,8 @@ def del_expired(db_model: Base, db: Session, email: str = None,
             return True
         except AttributeError:
             return False
+        except TypeError:
+            return False
         except sqlalchemy.exc.SQLAlchemyError as error:
             raise error
     elif username:
@@ -111,6 +113,8 @@ def del_expired(db_model: Base, db: Session, email: str = None,
             db.commit()
             return True
         except AttributeError:
+            return False
+        except TypeError:
             return False
         except sqlalchemy.exc.SQLAlchemyError as error:
             raise error

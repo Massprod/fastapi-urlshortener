@@ -14,12 +14,13 @@ def add_new_key(req: Request, data: NewKey, db: Session) -> NewKeyResponse:
     try:
         email_used = db.query(DbKeys).filter(DbKeys.email == email).first().email
         del_expired(db_model=DbKeys, db=db, email=email_used)
+    except AttributeError:
+        email_used = False
+    try:
         username_used = db.query(DbKeys).filter(DbKeys.username == username).first().username
         del_expired(db_model=DbKeys, db=db, username=username_used)
     except AttributeError:
-        email_used = False
         username_used = False
-
     if email_used:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Email already used: {email}")

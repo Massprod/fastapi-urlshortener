@@ -12,7 +12,8 @@ register_route = APIRouter(prefix="/register",
 @register_route.post(path="/new",
                      name="register new api-key",
                      response_model=NewKeyResponse,
-                     description="Creating new API-KEY and sending to provided Email",
+                     description="Creating new API-KEY and sending to provided Email."
+                                 "Not Active and expire in 1 day if not activated.",
                      response_description="Return JSON with registration data and sending "
                                           "activation link to provided Email",
                      )

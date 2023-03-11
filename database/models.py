@@ -1,5 +1,6 @@
 from database.database import Base
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 
 
 class DbRandom(Base):
@@ -11,11 +12,12 @@ class DbRandom(Base):
 
 class DbCustom(Base):
     __tablename__ = "custom"
-    id = Column(Integer, primary_key=True, index=True)
+    short_url = Column(String(length=200), primary_key=True, nullable=False)
     origin_url = Column(String(length=200), nullable=False)
-    short_url = Column(String(length=200), nullable=False)
-    api_key = Column(String, nullable=True)
     expire_date = Column(DateTime, nullable=False)
+
+    api_key = Column(String, ForeignKey("api_keys.api_key"), nullable=True)
+    key_user = relationship("DbKeys", back_populates="custom_urls")
 
 
 class DbKeys(Base):
@@ -27,3 +29,5 @@ class DbKeys(Base):
     link_send = Column(Boolean, nullable=False)
     activated = Column(Boolean, nullable=False)
     expire_date = Column(DateTime, nullable=True)
+
+    custom_urls = relationship("DbCustom", back_populates="key_user")

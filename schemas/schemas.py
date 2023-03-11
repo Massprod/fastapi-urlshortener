@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from routers_functions.scope_all import expire_date
 from datetime import datetime
+from typing import List
 
 
 class RandomShort(BaseModel):
@@ -55,3 +56,14 @@ class ActivateResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class ShowAll(BaseModel):
+    origin_url: str
+    short_url: str
+    expire_date: datetime
+
+
+class ShowAllResponse(BaseModel):
+    email: str
+    all_customs: List[ShowAll]
