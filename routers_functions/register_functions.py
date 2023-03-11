@@ -7,7 +7,7 @@ from datetime import datetime as dt
 
 
 def add_new_key(req: Request, data: NewKey, db: Session) -> NewKeyResponse:
-    """Creating new API-KEY and sending activation email"""
+    """Creating new Api-key and sending activation email"""
     email = data.email.strip(" ")
     username = data.username.strip(" ")
 
@@ -57,7 +57,7 @@ def add_new_key(req: Request, data: NewKey, db: Session) -> NewKeyResponse:
 
 
 def activate_new_key(req: Request, activation_key: str, db: Session) -> ActivateResponse:
-    """Checking existence of Activation link in DB and changing it status if Activated"""
+    """Checking existence of Activation link in Db and changing it status if Activated"""
     activation_link = req.base_url.url + "register/" + "activate/" + activation_key
     if exist := db.query(DbKeys).filter_by(activation_link=activation_link).first():
         act_entity = db.query(DbKeys).get(exist.email)

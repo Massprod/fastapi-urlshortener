@@ -59,11 +59,18 @@ class ActivateResponse(BaseModel):
 
 
 class ShowAll(BaseModel):
-    origin_url: str
-    short_url: str
+    origin_url: str = "https://www.pythonanywhere.com/"
+    short_url: str = "https://hosting_name/whitewhale"
     expire_date: datetime
+
+    class Config:
+        orm_mode = True
 
 
 class ShowAllResponse(BaseModel):
-    email: str
-    all_customs: List[ShowAll]
+    email: str = "piankovpe@gmail.com"
+    custom_urls: List[ShowAll]
+
+    class Config:
+        orm_mode = True
+

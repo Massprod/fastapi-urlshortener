@@ -7,7 +7,7 @@ from routers_functions.scope_all import working_url, expire_date, create_rshort,
 
 
 def create_new_random(req: Request, data: RandomShort, db: Session) -> RandomShortResponse:
-    """Creating RANDOM short Url DB record with provided length"""
+    """Creating Random short Url Db record with provided length"""
     if not working_url(data.origin_url):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Provided URL not responding or incorrect")

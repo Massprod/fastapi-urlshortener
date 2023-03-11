@@ -76,7 +76,7 @@ def create_send_key(receiver: str, link: str, api_key: str) -> bool:
 
 def del_expired(db_model: Base, db: Session, email: str = None,
                 username: str = None, del_one_short: str = None, delete_all: bool = False) -> bool:
-    """Deleting expired records from DB with given Table"""
+    """Deleting expired records from Db with given Table"""
     if delete_all:
         try:
             all_exp_data = db.query(db_model).with_entities(db_model.expire_date).all()

@@ -12,10 +12,9 @@ register_route = APIRouter(prefix="/register",
 @register_route.post(path="/new",
                      name="register new api-key",
                      response_model=NewKeyResponse,
-                     description="Creating new API-KEY and sending to provided Email."
-                                 "Not Active and expire in 1 day if not activated.",
-                     response_description="Return JSON with registration data and sending "
-                                          "activation link to provided Email",
+                     description="Creating new Api-key and sending to provided Email. "
+                                 "Can't be used and expire in 1 day if not activated.",
+                     response_description="Correct Json response with registration data",
                      )
 def register_new_key(req: Request,
                      data: NewKey,
@@ -27,12 +26,12 @@ def register_new_key(req: Request,
 @register_route.get(path="/activate/{activation_key}",
                     name="activate registered api-key",
                     response_model=ActivateResponse,
-                    description="Change activation status for registered API-KEY via provided "
-                                "activation link",
-                    response_description="Return JSON with data about activated API-KEY",
+                    description="Change activation status for registered Api-key via "
+                                "activation link sent to Email",
+                    response_description="Correct Json response with data about activated Api-key",
                     )
 def activating_new_keys(req: Request,
-                        activation_key: str = Path(description="Generated key from sent to Email Activation link"),
+                        activation_key: str = Path(description="Generated key from sent activation link"),
                         db: Session = Depends(db_session)
                         ):
     return activate_new_key(req, activation_key, db)

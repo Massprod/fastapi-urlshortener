@@ -7,6 +7,7 @@ from routers_functions.scope_all import working_url, expire_date, del_expired
 
 
 def create_new_custom(req: Request, data: CustomShort, db: Session, api_key: str = None) -> CustomShortResponse:
+    """Creating new custom Url for provided Api-key"""
     expire_limit = 0 < data.expire_days <= 10
     expire_limit_with_key = 0 < data.expire_days <= 30
 
@@ -46,16 +47,11 @@ def create_new_custom(req: Request, data: CustomShort, db: Session, api_key: str
 
 
 def show_all_email_customs(identifier: str, db: Session) -> ShowAllResponse:
+    """Returns Json with all custom urls created by provided Identifier: Email, Api-key, Username"""
     custom_urls = db.query(DbKeys).filter(or_(DbKeys.email == identifier,
                                               DbKeys.username == identifier,
                                               DbKeys.api_key == identifier)).first()
     if not custom_urls:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Unique Identifier not found. Check for typos or Registrate")
-    custom_list = []
-    for _ in custom_urls.custom_urls:
-        custom_append = {"origin_url": _.origin_url,
-                         "short_url": _.short_url,
-                         "expire_date": _.expire_date}
-        custom_list.append(custom_append)
-    return ShowAllResponse(email=custom_urls.email, all_customs=custom_list)
+    return ShowAllResponse(email=custom_urls.email, custom_urls=custom_urls.custom_urls)
