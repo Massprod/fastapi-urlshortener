@@ -1,12 +1,13 @@
 from fastapi import Request, HTTPException, status
 from database.models import DbKeys
 from sqlalchemy.orm.session import Session
-from schemas.schemas import NewKey
+from schemas.schemas import NewKey, NewKeyResponse, ActivateResponse
 from routers_functions.scope_all import create_send_key, create_rshort, expire_date, del_expired
 from datetime import datetime as dt
 
 
-def add_new_key(req: Request, data: NewKey, db: Session):
+def add_new_key(req: Request, data: NewKey, db: Session) -> NewKeyResponse:
+    """Creating new API-KEY and sending activation email"""
     email = data.email.strip(" ")
     username = data.username.strip(" ")
 
@@ -54,7 +55,8 @@ def add_new_key(req: Request, data: NewKey, db: Session):
                         detail="Provided Email incorrect or unreachable")
 
 
-def activate_new_key(req: Request, activation_key: str, db: Session):
+def activate_new_key(req: Request, activation_key: str, db: Session) -> ActivateResponse:
+    """Checking existence of Activation link in DB and changing it status if Activated"""
     activation_link = req.base_url.url + "register/" + "activate/" + activation_key
     if exist := db.query(DbKeys).filter_by(activation_link=activation_link).first():
         act_entity = db.query(DbKeys).get(exist.email)

@@ -20,8 +20,8 @@ def add_new_custom(req: Request,
                    data: CustomShort,
                    db: Session = Depends(db_session),
                    api_key: str = Header(None,
-                                         description="Optional HEADER. "
-                                                     "Used to mark API-KEY to created custom urls "
-                                                     "and expend expire limit to 30 days")
+                                         description="Optional."
+                                                     "Use to associate API-KEY to created custom urls "
+                                                     "and expend Expire limit to 30 days")
                    ):
     return create_new_custom(req, data, db, api_key)

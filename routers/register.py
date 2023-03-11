@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, Path
 from sqlalchemy.orm.session import Session
 from schemas.schemas import NewKey, NewKeyResponse, ActivateResponse
 from database.database import db_session
@@ -16,7 +16,10 @@ register_route = APIRouter(prefix="/register",
                      response_description="Return JSON with registration data and sending "
                                           "activation link to provided Email",
                      )
-def register_new_key(req: Request, data: NewKey, db: Session = Depends(db_session)):
+def register_new_key(req: Request,
+                     data: NewKey,
+                     db: Session = Depends(db_session)
+                     ):
     return add_new_key(req, data, db)
 
 
@@ -27,5 +30,8 @@ def register_new_key(req: Request, data: NewKey, db: Session = Depends(db_sessio
                                 "activation link",
                     response_description="Return JSON with data about activated API-KEY",
                     )
-def activating_new_keys(req: Request, activation_key: str, db: Session = Depends(db_session)):
+def activating_new_keys(req: Request,
+                        activation_key: str = Path(description="Generated key from sent to Email Activation link"),
+                        db: Session = Depends(db_session)
+                        ):
     return activate_new_key(req, activation_key, db)

@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 
 def working_url(url: str, timeout: int = 4) -> bool:
+    """Checking given Url for response. Return True if status code < 400. False otherwise"""
     try:
         if requests.head(url, timeout=timeout).status_code < 400:
             return True
@@ -24,12 +25,14 @@ def working_url(url: str, timeout: int = 4) -> bool:
 
 
 def expire_date(days: int = 7, seconds: int = 0) -> datetime:
+    """Creating DATETIME object with given Days, Seconds offset"""
     now = datetime.utcnow()
     expire = now + timedelta(days=days, seconds=seconds)
     return expire
 
 
 def create_rshort(length: int = 3) -> str:
+    """Creating Random string with given Length - limit 3 to 10"""
     if not 2 < length < 11:
         raise AttributeError("Length should be from 3 to 10")
     short = "".join(random.choices(string.ascii_letters + string.digits, k=length))
@@ -73,6 +76,7 @@ def create_send_key(receiver: str, link: str, api_key: str) -> bool:
 
 def del_expired(db_model: Base, db: Session, email: str = None,
                 username: str = None, del_one_short: str = None, delete_all: bool = False) -> bool:
+    """Deleting expired records from DB with given Table"""
     if delete_all:
         try:
             all_exp_data = db.query(db_model).with_entities(db_model.expire_date).all()
