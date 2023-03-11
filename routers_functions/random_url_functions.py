@@ -10,7 +10,7 @@ def create_new_random(req: Request, data: RandomShort, db: Session) -> RandomSho
     """Creating Random short Url Db record with provided length"""
     if not working_url(data.origin_url):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Provided URL not responding or incorrect")
+                            detail="Provided Url not responding or incorrect")
     while True:
         try:
             short_url = req.base_url.url + create_rshort(data.short_length)

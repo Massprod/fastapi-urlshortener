@@ -15,8 +15,8 @@ random_router = APIRouter(prefix="/random",
                     description="Creating random Url with given length for provided Url",
                     response_description="Correct Json response with Url and Short version to redirect from",
                     )
-def add_new_random(req: Request,
-                   data: RandomShort,
-                   db: Session = Depends(db_session)
-                   ):
+async def add_new_random(req: Request,
+                         data: RandomShort,
+                         db: Session = Depends(db_session)
+                         ):
     return create_new_random(req, data, db)

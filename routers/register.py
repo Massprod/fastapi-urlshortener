@@ -16,10 +16,10 @@ register_route = APIRouter(prefix="/register",
                                  "Can't be used and expire in 1 day if not activated.",
                      response_description="Correct Json response with registration data",
                      )
-def register_new_key(req: Request,
-                     data: NewKey,
-                     db: Session = Depends(db_session)
-                     ):
+async def register_new_key(req: Request,
+                           data: NewKey,
+                           db: Session = Depends(db_session)
+                           ):
     return add_new_key(req, data, db)
 
 
@@ -30,8 +30,8 @@ def register_new_key(req: Request,
                                 "activation link sent to Email",
                     response_description="Correct Json response with data about activated Api-key",
                     )
-def activating_new_keys(req: Request,
-                        activation_key: str = Path(description="Generated key from sent activation link"),
-                        db: Session = Depends(db_session)
-                        ):
+async def activating_new_keys(req: Request,
+                              activation_key: str = Path(description="Generated key from sent activation link"),
+                              db: Session = Depends(db_session)
+                              ):
     return activate_new_key(req, activation_key, db)
