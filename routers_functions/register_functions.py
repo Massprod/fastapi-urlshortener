@@ -8,17 +8,20 @@ from datetime import datetime as dt
 
 def add_new_key(req: Request, data: NewKey, db: Session) -> NewKeyResponse:
     """Creating new Api-key and sending activation email"""
-    email = data.email.strip(" ")
-    username = data.username.strip(" ")
-
+    email = data.email.replace(" ", "")
+    username = data.username.replace(" ", "")
     try:
         email_used = db.query(DbKeys).filter(DbKeys.email == email).first().email
-        del_expired(db_model=DbKeys, db=db, email=email_used)
+        expired = del_expired(db_model=DbKeys, db=db, email=email_used)
+        if expired:
+            email_used = False
     except AttributeError:
         email_used = False
     try:
         username_used = db.query(DbKeys).filter(DbKeys.username == username).first().username
-        del_expired(db_model=DbKeys, db=db, username=username_used)
+        expired = del_expired(db_model=DbKeys, db=db, username=username_used)
+        if expired:
+            username_used = False
     except AttributeError:
         username_used = False
     if email_used:
@@ -46,7 +49,7 @@ def add_new_key(req: Request, data: NewKey, db: Session) -> NewKeyResponse:
                          activation_link=activation_link,
                          link_send=True,
                          activated=False,
-                         expire_date=expire_date(days=1, seconds=0)
+                         expire_date=expire_date(days=0, seconds=10)
                          )
         db.add(new_key)
         db.commit()
@@ -58,7 +61,7 @@ def add_new_key(req: Request, data: NewKey, db: Session) -> NewKeyResponse:
 
 def activate_new_key(req: Request, activation_key: str, db: Session) -> ActivateResponse:
     """Checking existence of Activation link in Db and changing it status if Activated"""
-    activation_link = req.base_url.url + "register/" + "activate/" + activation_key
+    activation_link = req.base_url.url + "register/" + "activate/" + activation_key.replace(" ", "")
     if exist := db.query(DbKeys).filter_by(activation_link=activation_link).first():
         act_entity = db.query(DbKeys).get(exist.email)
         act_entity.activation_link = f"key: {activation_key} " \
@@ -68,4 +71,4 @@ def activate_new_key(req: Request, activation_key: str, db: Session) -> Activate
         db.commit()
         return act_entity
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                        detail="Link already Activated or Expired",)
+                        detail="Link not found. Might be already Activated or Expired",)

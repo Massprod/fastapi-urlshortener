@@ -97,8 +97,9 @@ def del_expired(db_model: Base, db: Session, email: str = None,
             exp_data = db.query(db_model).filter_by(email=email).first()
             if exp_data.expire_date <= datetime.utcnow():
                 db.delete(exp_data)
-            db.commit()
-            return True
+                db.commit()
+                return True
+            return False
         except AttributeError:
             return False
         except TypeError:
@@ -110,8 +111,9 @@ def del_expired(db_model: Base, db: Session, email: str = None,
             exp_data = db.query(db_model).filter_by(username=username).first()
             if exp_data.expire_date <= datetime.utcnow():
                 db.delete(exp_data)
-            db.commit()
-            return True
+                db.commit()
+                return True
+            return False
         except AttributeError:
             return False
         except TypeError:
@@ -123,8 +125,9 @@ def del_expired(db_model: Base, db: Session, email: str = None,
             exp_data = db.query(db_model).filter_by(short_url=del_one_short).first()
             if exp_data.expire_date <= datetime.utcnow():
                 db.delete(exp_data)
-            db.commit()
-            return True
+                db.commit()
+                return True
+            return False
         except AttributeError:
             return False
         except sqlalchemy.exc.SQLAlchemyError as error:
