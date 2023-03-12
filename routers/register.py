@@ -5,8 +5,7 @@ from database.database import db_session
 from routers_functions.register_functions import add_new_key, activate_new_key
 
 register_route = APIRouter(prefix="/register",
-                           tags=["register"],
-                           )
+                           tags=["register"],)
 
 
 @register_route.post(path="/new",

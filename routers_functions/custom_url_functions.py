@@ -10,7 +10,8 @@ def create_new_custom(req: Request, data: CustomShort, db: Session, api_key: str
     """Creating new custom Url for provided Api-key"""
     expire_limit = 0 < data.expire_days <= 10
     expire_limit_with_key = 0 < data.expire_days <= 30
-    api_key = api_key.replace(" ", "")
+    if api_key is not None:
+        api_key = api_key.replace(" ", "")
     try:
         api_key_active = db.query(DbKeys).filter_by(api_key=api_key).first().activated
     except AttributeError:
@@ -38,7 +39,7 @@ def create_new_custom(req: Request, data: CustomShort, db: Session, api_key: str
         origin_url=data.origin_url,
         short_url=new_custom,
         api_key=api_key,
-        expire_date=expire_date(days=data.expire_days),
+        expire_date=expire_date(days=data.expire_days, seconds=0),
     )
     db.add(new_custom)
     db.commit()

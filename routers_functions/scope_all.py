@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import sqlalchemy.exc
 
 from database.database import Base
+from database.models import *
 from sqlalchemy.orm import Session
 
 
@@ -80,7 +81,7 @@ def del_expired(db_model: Base, db: Session, email: str = None,
     if delete_all:
         try:
             all_exp_data = db.query(db_model).with_entities(db_model.expire_date).all()
-            all_exp_data = [_[0] for _ in all_exp_data]
+            all_exp_data = [_[0] for _ in all_exp_data if _[0] is not None]
             for _ in all_exp_data:
                 if _ <= datetime.utcnow():
                     to_delete = db.query(db_model).filter_by(expire_date=_).all()

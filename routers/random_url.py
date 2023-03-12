@@ -5,8 +5,7 @@ from sqlalchemy.orm.session import Session
 from routers_functions.random_url_functions import create_new_random
 
 random_router = APIRouter(prefix="/random",
-                          tags=["random"],
-                          )
+                          tags=["random"],)
 
 
 @random_router.post("/add",

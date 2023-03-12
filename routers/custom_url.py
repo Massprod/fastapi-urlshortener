@@ -5,8 +5,7 @@ from schemas.schemas import CustomShort, CustomShortResponse, ShowAllResponse
 from routers_functions.custom_url_functions import create_new_custom, show_all_email_customs
 
 custom_router = APIRouter(prefix="/custom",
-                          tags=["custom"]
-                          )
+                          tags=["custom"])
 
 
 @custom_router.post("/add",
