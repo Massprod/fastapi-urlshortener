@@ -74,3 +74,7 @@ class ShowAllResponse(BaseModel):
     class Config:
         orm_mode = True
 
+
+class DeleteExpiredResponse(BaseModel):
+    table: str = "all"
+    call_time: datetime
