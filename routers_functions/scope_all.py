@@ -3,15 +3,15 @@ import smtplib
 import requests
 import random
 import string
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
 
 import sqlalchemy.exc
-
-from database.database import Base
-from database.models import *
 from sqlalchemy.orm import Session
+
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+from database.models import *
 
 
 def working_url(url: str, timeout: int = 4) -> bool:
@@ -41,6 +41,7 @@ def create_rshort(length: int = 3) -> str:
 
 
 def create_send_key(receiver: str, link: str, api_key: str) -> bool:
+    """Creates and sends Email with activation link in it"""
     try:
         email = os.getenv("EMAIL")
         email_key = os.getenv("EMAIL_KEY")
