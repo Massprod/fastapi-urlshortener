@@ -49,7 +49,7 @@ def add_new_key(req: Request, data: NewKey, db: Session) -> NewKeyResponse:
                          activation_link=activation_link,
                          link_send=True,
                          activated=False,
-                         expire_date=expire_date(days=0, seconds=10)
+                         expire_date=expire_date(days=1, seconds=0)
                          )
         db.add(new_key)
         db.commit()

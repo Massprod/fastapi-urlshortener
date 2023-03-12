@@ -38,7 +38,7 @@ def create_new_custom(req: Request, data: CustomShort, db: Session, api_key: str
         origin_url=data.origin_url,
         short_url=new_custom,
         api_key=api_key,
-        expire_date=expire_date(data.expire_days),
+        expire_date=expire_date(days=data.expire_days),
     )
     db.add(new_custom)
     db.commit()
