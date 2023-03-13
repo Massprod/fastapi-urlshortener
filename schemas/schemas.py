@@ -78,3 +78,10 @@ class ShowAllResponse(BaseModel):
 class DeleteExpiredResponse(BaseModel):
     table: str = "all"
     call_time: datetime
+
+
+class DeleteCustomResponse(BaseModel):
+    short_url: str = "https://hosting_name/provision"
+    origin_url: str = "https://github.com/Massprod/UdemyFastAPI"
+    api_key: str = "used_key"
+    call_time: datetime
