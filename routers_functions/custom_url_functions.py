@@ -64,6 +64,7 @@ def show_all_email_customs(identifier: str, db: Session) -> ShowAllResponse:
 
 
 def delete_by_api_key(req: Request, custom_name: str, api_key: str, db: Session) -> DeleteCustomResponse:
+    """Deletes custom_short from Db by its name, if it's associated with given Api-key"""
     if key_exist := db.query(DbKeys).filter_by(api_key=api_key).first():
         if key_exist.activated:
             chosen_url = req.base_url.url + custom_name.replace(" ", "")
