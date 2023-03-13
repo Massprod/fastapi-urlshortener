@@ -11,7 +11,8 @@ custom_router = APIRouter(prefix="/custom",
 @custom_router.post("/add",
                     name="Create new custom short",
                     response_model=CustomShortResponse,
-                    description="Creating custom named version of provided Url",
+                    description="Create custom named short version of provided Url, "
+                                "associate it with Api-key if given",
                     response_description="Correct Json response with Url and custom version of it to redirect from",
                     )
 async def add_new_custom(req: Request,
