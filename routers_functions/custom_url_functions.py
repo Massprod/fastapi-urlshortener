@@ -1,7 +1,7 @@
 from fastapi import Request, status, HTTPException
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from schemas.schemas import CustomShort, CustomShortResponse, ShowAllResponse
+from schemas.schemas import CustomShort, CustomShortResponse, ShowAllResponse, DeleteCustomResponse
 from database.models import DbCustom, DbKeys
 from routers_functions.scope_all import working_url, expire_date, del_expired
 
@@ -10,6 +10,7 @@ def create_new_custom(req: Request, data: CustomShort, db: Session, api_key: str
     """Creating new custom Url for provided Api-key"""
     expire_limit = 0 < data.expire_days <= 10
     expire_limit_with_key = 0 < data.expire_days <= 30
+    custom_name = data.custom_name.replace(" ", "")
     if api_key is not None:
         api_key = api_key.replace(" ", "")
     try:
@@ -17,7 +18,7 @@ def create_new_custom(req: Request, data: CustomShort, db: Session, api_key: str
     except AttributeError:
         api_key_active = False
 
-    if len(data.custom_name) == 0 or len(data.custom_name) > 30:
+    if len(custom_name) == 0 or len(custom_name) > 30:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Custom name can't be empty String and longer than 30 symbols")
     elif not expire_limit and not api_key_active:
@@ -27,7 +28,7 @@ def create_new_custom(req: Request, data: CustomShort, db: Session, api_key: str
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Provided Url not responding or incorrect")
 
-    new_custom = req.base_url.url + data.custom_name.replace(" ", "")
+    new_custom = req.base_url.url + custom_name
     del_expired(db_model=DbCustom, db=db, del_one_short=new_custom)
     if exist := db.query(DbCustom).filter_by(short_url=new_custom).first():
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
@@ -60,3 +61,26 @@ def show_all_email_customs(identifier: str, db: Session) -> ShowAllResponse:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Api-key not activated")
     return ShowAllResponse(email=custom_urls.email, custom_urls=custom_urls.custom_urls)
+
+
+def delete_by_api_key(req: Request, custom_name: str, api_key: str, db: Session) -> DeleteCustomResponse:
+    if key_exist := db.query(DbKeys).filter_by(api_key=api_key).first():
+        if key_exist.activated:
+            chosen_url = req.base_url.url + custom_name.replace(" ", "")
+            if to_delete := db.query(DbCustom).filter_by(short_url=chosen_url).first():
+                if to_delete.api_key == key_exist.api_key:
+                    db.delete(to_delete)
+                    db.commit()
+                    return DeleteCustomResponse(origin_url=to_delete.origin_url,
+                                                short_url=to_delete.short_url,
+                                                api_key=to_delete.api_key,
+                                                )
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                    detail=f"short Url with custom name: '{custom_name} '"
+                                           f"not created by used api-key '{api_key}'")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"short Url with custom name: '{custom_name}' doesn't  exist ")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Api key not Activated")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                        detail="No such Api-key")
