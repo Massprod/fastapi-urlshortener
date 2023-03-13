@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 from schemas.schemas import CustomShort, CustomShortResponse, ShowAllResponse, DeleteCustomResponse
 from database.models import DbCustom, DbKeys
 from routers_functions.scope_all import working_url, expire_date, del_expired
+from datetime import datetime
 
 
-def create_new_custom(req: Request, data: CustomShort, db: Session, api_key: str = None) -> CustomShortResponse:
+def create_new_custom(request: Request, data: CustomShort, db: Session, api_key: str = None) -> CustomShortResponse:
     """Creating new custom Url for provided Api-key"""
     expire_limit = 0 < data.expire_days <= 10
     expire_limit_with_key = 0 < data.expire_days <= 30
@@ -27,7 +28,7 @@ def create_new_custom(req: Request, data: CustomShort, db: Session, api_key: str
     elif not working_url(data.origin_url):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Provided Url not responding or incorrect")
-    new_custom = req.base_url.url + custom_name
+    new_custom = request.base_url.url + custom_name
     del_expired(db_model=DbCustom, db=db, del_one_short=new_custom)
     if exist := db.query(DbCustom).filter_by(short_url=new_custom).first():
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
@@ -61,11 +62,11 @@ def show_all_email_customs(identifier: str, db: Session) -> ShowAllResponse:
     return ShowAllResponse(email=custom_urls.email, custom_urls=custom_urls.custom_urls)
 
 
-def delete_by_api_key(req: Request, custom_name: str, api_key: str, db: Session) -> DeleteCustomResponse:
+def delete_by_api_key(request: Request, custom_name: str, api_key: str, db: Session) -> DeleteCustomResponse:
     """Deletes custom_short from Db by its name, if it's associated with given Api-key"""
     if key_exist := db.query(DbKeys).filter_by(api_key=api_key).first():
         if key_exist.activated:
-            chosen_url = req.base_url.url + custom_name.replace(" ", "")
+            chosen_url = request.base_url.url + custom_name.replace(" ", "")
             if to_delete := db.query(DbCustom).filter_by(short_url=chosen_url).first():
                 if to_delete.api_key == key_exist.api_key:
                     db.delete(to_delete)
@@ -73,6 +74,7 @@ def delete_by_api_key(req: Request, custom_name: str, api_key: str, db: Session)
                     return DeleteCustomResponse(origin_url=to_delete.origin_url,
                                                 short_url=to_delete.short_url,
                                                 api_key=to_delete.api_key,
+                                                call_time=datetime.utcnow()
                                                 )
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                     detail=f"short Url with custom name: '{custom_name} '"

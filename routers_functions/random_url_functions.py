@@ -6,14 +6,14 @@ from database.models import DbRandom
 from routers_functions.scope_all import working_url, expire_date, create_rshort, del_expired
 
 
-def create_new_random(req: Request, data: RandomShort, db: Session) -> RandomShortResponse:
+def create_new_random(request: Request, data: RandomShort, db: Session) -> RandomShortResponse:
     """Creating Random short Url Db record with provided length"""
     if not working_url(data.origin_url):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Provided Url not responding or incorrect")
     while True:
         try:
-            short_url = req.base_url.url + create_rshort(data.short_length)
+            short_url = request.base_url.url + create_rshort(data.short_length)
         except AttributeError:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Length limited from 3 to 10")

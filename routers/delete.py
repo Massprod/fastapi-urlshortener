@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, Request
 from sqlalchemy.orm import Session
 from database.database import db_session
 from schemas.schemas import DeleteExpiredResponse
 from routers_functions.delete_functions import delete_all_expired_in_table
+from limiter import req_limiter, delete_limit
 
 
 delete_router = APIRouter(prefix="/delete",
@@ -15,7 +16,9 @@ delete_router = APIRouter(prefix="/delete",
                       description="Deletes all expired records from given Table in Db",
                       response_description="Correct Json response with cleared Table and call time",
                       )
-async def clear_expired(admin_key: str = Header(description="Required access key"),
+@req_limiter.limit(delete_limit)
+async def clear_expired(request: Request,  # required by limiter
+                        admin_key: str = Header(description="Required access key"),
                         db_model: str = Header("all",
                                                description="Table name"),
                         db: Session = Depends(db_session)

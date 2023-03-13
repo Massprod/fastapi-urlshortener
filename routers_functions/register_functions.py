@@ -6,7 +6,7 @@ from routers_functions.scope_all import create_send_key, create_rshort, expire_d
 from datetime import datetime as dt
 
 
-def add_new_key(req: Request, data: NewKey, db: Session) -> NewKeyResponse:
+def add_new_key(request: Request, data: NewKey, db: Session) -> NewKeyResponse:
     """Creating new Api-key and sending activation email"""
     email = data.email.replace(" ", "")
     username = data.username.replace(" ", "")
@@ -37,7 +37,7 @@ def add_new_key(req: Request, data: NewKey, db: Session) -> NewKeyResponse:
             break
     while True:
         activation_key = create_rshort(length=10)
-        activation_link = req.base_url.url + "register/" + "activate/" + activation_key
+        activation_link = request.base_url.url + "register/" + "activate/" + activation_key
         used = db.query(DbKeys).filter_by(activation_link=activation_link).first()
         if not used:
             break
@@ -59,9 +59,9 @@ def add_new_key(req: Request, data: NewKey, db: Session) -> NewKeyResponse:
                         detail="Provided Email incorrect or unreachable")
 
 
-def activate_new_key(req: Request, activation_key: str, db: Session) -> ActivateResponse:
+def activate_new_key(request: Request, activation_key: str, db: Session) -> ActivateResponse:
     """Checking existence of Activation link in Db and changing it status if Activated"""
-    activation_link = req.base_url.url + "register/" + "activate/" + activation_key.replace(" ", "")
+    activation_link = request.base_url.url + "register/" + "activate/" + activation_key.replace(" ", "")
     if exist := db.query(DbKeys).filter_by(activation_link=activation_link).first():
         act_entity = db.query(DbKeys).get(exist.email)
         act_entity.activation_link = f"key: {activation_key} " \
