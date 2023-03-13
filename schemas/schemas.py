@@ -28,6 +28,7 @@ class CustomShortResponse(BaseModel):
     origin_url: str = "https://github.com/Massprod/UdemyFastAPI"
     short_url: str = "https://hosting_name/provision"
     expire_date: datetime = expire_date(days=10)
+    api_key: str = None
 
     class Config:
         orm_mode = True
