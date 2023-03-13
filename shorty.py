@@ -6,7 +6,10 @@ from routers.delete import delete_router
 from database.models import Base
 from database.database import engine
 
-shorty = FastAPI()
+shorty = FastAPI(title="ShortyAPI",
+                 description="Url shortener for practice",
+                 version="0.1",
+                 )
 
 shorty.include_router(random_router)
 shorty.include_router(custom_router)
