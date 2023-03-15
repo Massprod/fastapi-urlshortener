@@ -184,7 +184,7 @@ async def test_register_new_key_with_expired_username():
 @pytest.mark.asyncio
 async def test_activate_new_key():
     async with AsyncClient(app=shorty, base_url="https://test") as client:
-        """Test standard response for GET request from Activation link sent to email"""
+        """Test standard response for GET request from KeyActivation link sent to email"""
         database = next(override_db_session())
         test_email = test_activation_link.email
         test_username = test_activation_link.username
@@ -208,6 +208,7 @@ async def test_activate_new_key():
 
 @pytest.mark.asyncio
 async def test_activate_new_key_with_wrong_link():
+    """Test standard response for GET request for KeyActivation with wrong activation link"""
     async with AsyncClient(app=shorty, base_url="https://test") as client:
         """Test standard response for GET request with wrong PATH parameter (activation_key)"""
         database = next(override_db_session())
