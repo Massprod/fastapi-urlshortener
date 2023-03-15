@@ -10,16 +10,21 @@ async def test_add_new_random():
     """Test standard response with correct data"""
     async with AsyncClient(app=shorty, base_url="http://test") as client:
         db = next(override_db_session())
-        response = await client.post("/random/add",
-                                     json={"origin_url": "https://github.com/Massprod/FastAPI_UrlShort",
-                                           "short_length": 4}
-                                     )
-        assert response.status_code == 200
-        created_short = response.json()["short_url"]
-        db_record = db.query(DbRandom).filter_by(short_url=created_short).first()
-        assert db_record
+        response_1 = await client.post("/random/add",
+                                       json={"origin_url": "https://github.com/Massprod/FastAPI_UrlShort",
+                                             "short_length": 4}
+                                       )
+        assert response_1.status_code == 200
+        created_short_1 = response_1.json()["short_url"]
+        db_record_2 = db.query(DbRandom).filter_by(short_url=created_short_1).first()
+        assert db_record_2
         target_expire_date = expire_date(days=7)
-        assert target_expire_date.day == db_record.expire_date.day
+        assert target_expire_date.day == db_record_2.expire_date.day
+        response_2 = await client.post("/random/add",
+                                       json={"origin_url": "https://github.com/Massprod/FastAPI_UrlShort",
+                                             "short_length": 10}
+                                       )
+        assert response_2.status_code == 200
 
 
 @pytest.mark.asyncio
@@ -31,6 +36,11 @@ async def test_add_new_random_with_broken_url():
                                            "short_length": 4}
                                      )
         assert response.status_code == 400
+        timeout_response = await client.post("/random/add",
+                                             json={"origin_url": "https://pikabu.ru/dasd",
+                                                   "short_length": 10}
+                                             )
+        assert timeout_response.status_code == 400
 
 
 @pytest.mark.asyncio
@@ -44,7 +54,7 @@ async def test_add_new_random_with_wrong_length():
         assert response_1.status_code == 400
         response_2 = await client.post("/random/add",
                                        json={"origin_url": "https://github.com/Massprod/FastAPI_UrlShort",
-                                             "short_length": 1}
+                                             "short_length": 3}
                                        )
         assert response_2.status_code == 400
         response_3 = await client.post("/random/add",
