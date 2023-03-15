@@ -42,7 +42,7 @@ class NewKey(BaseModel):
 class NewKeyResponse(BaseModel):
     email: str = "piankovpe@gmail.com"
     username: str = "whitewhale"
-    send: bool = True
+    link_send: bool = True
     expire_date: datetime = expire_date(days=1)
 
     class Config:
