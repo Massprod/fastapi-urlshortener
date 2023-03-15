@@ -83,8 +83,7 @@ def del_expired(db_model: Base, db: Session, email: str = None,
     False if record exist and not expired,
     None if record not found."""
     if delete_all:
-        try:
-            all_exp_data = db.query(db_model).with_entities(db_model.expire_date).all()
+        if all_exp_data := db.query(db_model).with_entities(db_model.expire_date).all():
             all_exp_data = [_[0] for _ in all_exp_data if _[0] is not None]
             for _ in all_exp_data:
                 if _ <= datetime.utcnow():
@@ -93,35 +92,30 @@ def del_expired(db_model: Base, db: Session, email: str = None,
                         db.delete(_)
             db.commit()
             return True
-        except AttributeError:
-            return None
+        return False
     elif email:
-        try:
-            exp_data = db.query(db_model).filter_by(email=email).first()
-            if exp_data.expire_date <= datetime.utcnow():
+        if exp_data := db.query(db_model).filter_by(email=email).first():
+            if exp_data.expire_date is None:
+                return False
+            elif exp_data.expire_date <= datetime.utcnow():
                 db.delete(exp_data)
                 db.commit()
                 return True
-            return False
-        except AttributeError:
-            return None
+        return None
     elif username:
-        try:
-            exp_data = db.query(db_model).filter_by(username=username).first()
-            if exp_data.expire_date <= datetime.utcnow():
+        if exp_data := db.query(db_model).filter_by(username=username).first():
+            if exp_data.expire_date is None:
+                return False
+            elif exp_data.expire_date <= datetime.utcnow():
                 db.delete(exp_data)
                 db.commit()
                 return True
-            return False
-        except AttributeError:
-            return None
+        return None
     elif del_one_short:
-        try:
-            exp_data = db.query(db_model).filter_by(short_url=del_one_short).first()
+        if exp_data := db.query(db_model).filter_by(short_url=del_one_short).first():
             if exp_data.expire_date <= datetime.utcnow():
                 db.delete(exp_data)
                 db.commit()
                 return True
             return False
-        except AttributeError:
-            return None
+        return None
