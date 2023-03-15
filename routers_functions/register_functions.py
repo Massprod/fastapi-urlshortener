@@ -10,6 +10,9 @@ def add_new_key(request: Request, data: NewKey, db: Session) -> NewKeyResponse:
     """Creating new Api-key and sending activation email"""
     email = data.email.replace(" ", "")
     username = data.username.replace(" ", "")
+    if len(username) == 0:
+        raise HTTPException(status_code=400,
+                            detail="Username can't be empty")
     try:
         email_used = db.query(DbKeys).filter(DbKeys.email == email).first().email
         expired = del_expired(db_model=DbKeys, db=db, email=email_used)
@@ -56,7 +59,7 @@ def add_new_key(request: Request, data: NewKey, db: Session) -> NewKeyResponse:
         db.refresh(new_key)
         return new_key
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Provided Email incorrect or unreachable")
+                        detail="Email empty or incorrect")
 
 
 def activate_new_key(request: Request, activation_key: str, db: Session) -> ActivateResponse:
