@@ -82,9 +82,9 @@ async def test_register_new_key_with_empty_username():
         assert response.status_code == 400
 
 
-# There's no verification for REAL_EMAIL in smtplib. This why we can
-# send email anywhere and only after get email with receiver not found,
-# but instantly raise error if domain is wrong. Only way to test this.
+# There's no verification for REAL_EMAIL in smtplib. This is why we can send email anywhere
+# and only after getting email verification about receiver not found, we can do something.
+# Instantly raise error if domain is wrong. Only way to test this for now.
 @pytest.mark.asyncio
 async def test_register_new_key_with_wrong_domain():
     """Test standard response with wrong email domain"""
