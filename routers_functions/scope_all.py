@@ -92,8 +92,6 @@ def del_expired(db_model: Base, db: Session, email: str = None,
             return True
         except AttributeError:
             return False
-        except sqlalchemy.exc.SQLAlchemyError as error:
-            raise error
     elif email:
         try:
             exp_data = db.query(db_model).filter_by(email=email).first()
@@ -104,10 +102,6 @@ def del_expired(db_model: Base, db: Session, email: str = None,
             return False
         except AttributeError:
             return False
-        except TypeError:
-            return False
-        except sqlalchemy.exc.SQLAlchemyError as error:
-            raise error
     elif username:
         try:
             exp_data = db.query(db_model).filter_by(username=username).first()
@@ -118,10 +112,6 @@ def del_expired(db_model: Base, db: Session, email: str = None,
             return False
         except AttributeError:
             return False
-        except TypeError:
-            return False
-        except sqlalchemy.exc.SQLAlchemyError as error:
-            raise error
     elif del_one_short:
         try:
             exp_data = db.query(db_model).filter_by(short_url=del_one_short).first()
@@ -130,7 +120,5 @@ def del_expired(db_model: Base, db: Session, email: str = None,
                 db.commit()
                 return True
             return False
-        except AttributeError:
+        except AttributeError:  # can be deleted if function will be used Only for confirmed records ^all of them^
             return False
-        except sqlalchemy.exc.SQLAlchemyError as error:
-            raise error
