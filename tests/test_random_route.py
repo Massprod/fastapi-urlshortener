@@ -18,8 +18,8 @@ async def test_add_new_random():
         created_short = response.json()["short_url"]
         db_record = db.query(DbRandom).filter_by(short_url=created_short).first()
         assert db_record
-        target_expire_date = expire_date(days=7).day
-        assert target_expire_date == db_record.expire_date.day
+        target_expire_date = expire_date(days=7)
+        assert target_expire_date.day == db_record.expire_date.day
 
 
 @pytest.mark.asyncio
