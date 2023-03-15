@@ -62,4 +62,4 @@ def activate_new_key(request: Request, activation_key: str, db: Session) -> Acti
         db.commit()
         return act_entity
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                        detail="Link not found. Might be already Activated or Expired",)
+                        detail="Link not found. Already Activated or Expired",)
