@@ -16,7 +16,7 @@ def create_new_random(request: Request, data: RandomShort, db: Session) -> Rando
             short_url = request.base_url.url + create_rshort(data.short_length)
         except AttributeError:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Length limited from 3 to 10")
+                                detail="Length limited from 4 to 10")
         try:
             del_expired(db_model=DbRandom, db=db, del_one_short=short_url)
             new_short = DbRandom(origin_url=data.origin_url,

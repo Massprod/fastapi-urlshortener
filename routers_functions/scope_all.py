@@ -5,7 +5,6 @@ import random
 import string
 from datetime import datetime, timedelta
 
-import sqlalchemy.exc
 from sqlalchemy.orm import Session
 
 from email.mime.text import MIMEText
@@ -14,13 +13,14 @@ from email.mime.multipart import MIMEMultipart
 from database.models import *
 
 
-def working_url(url: str, timeout: int = 4) -> bool:
+def working_url(url: str, timeout: int = 3) -> bool:
     """Checking given Url for response. Return True if status code < 400. False otherwise"""
     try:
         if requests.head(url, timeout=timeout).status_code < 400:
             return True
-        else:
-            return False
+        return False
+    # there's too many exceptions to cover, as we generally care for working urls with 200, 302
+    # Ignore all Exceptions for now or I can create MockServer...imo not worth in this case
     except requests.exceptions.RequestException:
         return False
 
@@ -32,10 +32,10 @@ def expire_date(days: int = 7, seconds: int = 0) -> datetime:
     return expire
 
 
-def create_rshort(length: int = 3) -> str:
-    """Creating Random string with given Length - limit 3 to 10"""
-    if not 2 < length < 11:
-        raise AttributeError("Length should be from 3 to 10")
+def create_rshort(length: int = 4) -> str:
+    """Creating Random string with given Length - limit 4 to 10"""
+    if not 3 < length < 11:
+        raise AttributeError("Length should be from 4 to 10")
     short = "".join(random.choices(string.ascii_letters + string.digits, k=length))
     return short
 
