@@ -28,4 +28,4 @@ def create_new_random(request: Request, data: RandomShort, db: Session) -> Rando
             db.refresh(new_short)
             return new_short
         except IntegrityError:  # because short_url is primary key, it will always be IntegrityError on commit
-            db.rollback()  # until we run out of combinations and for 4+ there's millions. No way to Test
+            db.rollback()  # until we run out of combinations for 4+ 13388280. No way to Test.
