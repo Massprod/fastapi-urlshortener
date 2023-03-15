@@ -77,8 +77,11 @@ def create_send_key(receiver: str, link: str, api_key: str) -> bool:
 
 
 def del_expired(db_model: Base, db: Session, email: str = None,
-                username: str = None, del_one_short: str = None, delete_all: bool = False) -> bool:
-    """Deleting expired records from Db with given Table"""
+                username: str = None, del_one_short: str = None, delete_all: bool = False) -> None | bool:
+    """Deleting expired records from Db with given Table.
+    Returns True if expired record deleted,
+    False if record exist and not expired,
+    None if record not found."""
     if delete_all:
         try:
             all_exp_data = db.query(db_model).with_entities(db_model.expire_date).all()
@@ -91,7 +94,7 @@ def del_expired(db_model: Base, db: Session, email: str = None,
             db.commit()
             return True
         except AttributeError:
-            return False
+            return None
     elif email:
         try:
             exp_data = db.query(db_model).filter_by(email=email).first()
@@ -101,7 +104,7 @@ def del_expired(db_model: Base, db: Session, email: str = None,
                 return True
             return False
         except AttributeError:
-            return False
+            return None
     elif username:
         try:
             exp_data = db.query(db_model).filter_by(username=username).first()
@@ -111,7 +114,7 @@ def del_expired(db_model: Base, db: Session, email: str = None,
                 return True
             return False
         except AttributeError:
-            return False
+            return None
     elif del_one_short:
         try:
             exp_data = db.query(db_model).filter_by(short_url=del_one_short).first()
@@ -120,5 +123,5 @@ def del_expired(db_model: Base, db: Session, email: str = None,
                 db.commit()
                 return True
             return False
-        except AttributeError:  # can be deleted if function will be used Only for confirmed records ^all of them^
-            return False
+        except AttributeError:
+            return None
