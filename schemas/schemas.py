@@ -52,8 +52,8 @@ class NewKeyResponse(BaseModel):
 class ActivateResponse(BaseModel):
     email: str = "piankovpe@gmail.com"
     username: str = "whitewhale"
-    activated: bool
     api_key: str = "123456789"
+    activated: bool = True
 
     class Config:
         orm_mode = True
