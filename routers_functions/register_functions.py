@@ -13,26 +13,14 @@ def add_new_key(request: Request, data: NewKey, db: Session) -> NewKeyResponse:
     if len(username) == 0:
         raise HTTPException(status_code=400,
                             detail="Username can't be empty")
-    try:
-        email_used = db.query(DbKeys).filter(DbKeys.email == email).first().email
-        expired = del_expired(db_model=DbKeys, db=db, email=email_used)
-        if expired:
-            email_used = False
-    except AttributeError:
-        email_used = False
-    try:
-        username_used = db.query(DbKeys).filter(DbKeys.username == username).first().username
-        expired = del_expired(db_model=DbKeys, db=db, username=username_used)
-        if expired:
-            username_used = False
-    except AttributeError:
-        username_used = False
-    if email_used:
+    email_expired = del_expired(db_model=DbKeys, db=db, email=email)
+    username_expired = del_expired(db_model=DbKeys, db=db, username=username)
+    if email_expired is False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Email already used: {email}")
-    elif username_used:
+    elif username_expired is False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f"username already used: {username}",)
+                            detail=f"Username already used: {username}",)
     while True:
         api_key = create_rshort(length=9)
         used = db.query(DbKeys).filter_by(api_key=api_key).first()
