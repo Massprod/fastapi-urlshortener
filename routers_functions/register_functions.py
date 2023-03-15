@@ -20,7 +20,7 @@ def add_new_key(request: Request, data: NewKey, db: Session) -> NewKeyResponse:
                             detail=f"Email already used: {email}")
     elif username_expired is False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f"Username already used: {username}",)
+                            detail=f"Username already used: {username}")
     while True:
         api_key = create_rshort(length=9)
         used = db.query(DbKeys).filter_by(api_key=api_key).first()
@@ -54,12 +54,17 @@ def activate_new_key(request: Request, activation_key: str, db: Session) -> Acti
     """Checking existence of Activation link in Db and changing it status if Activated"""
     activation_link = request.base_url.url + "register/" + "activate/" + activation_key.replace(" ", "")
     if exist := db.query(DbKeys).filter_by(activation_link=activation_link).first():
-        act_entity = db.query(DbKeys).get(exist.email)
+        act_entity = db.get(DbKeys, exist.email)
         act_entity.activation_link = f"key: {activation_key} " \
                                      f"used: {dt.strftime(dt.utcnow(), '%Y.%m.%d')}"
         act_entity.activated = True
         act_entity.expire_date = None
         db.commit()
-        return act_entity
+        db.refresh(act_entity)
+        return ActivateResponse(email=act_entity.email,
+                                username=act_entity.username,
+                                api_key=act_entity.api_key,
+                                activated=act_entity.activated
+                                )
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                        detail="Link not found. Already Activated or Expired",)
+                        detail="Link not found. Already Activated or Expired")
