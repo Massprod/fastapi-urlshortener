@@ -11,7 +11,9 @@ def create_new_random(request: Request, data: RandomShort, db: Session) -> Rando
     if not working_url(data.origin_url):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Provided Url not responding or incorrect")
-    while True:
+    infinite_limit = 400
+    infinite_limiter = 0
+    while infinite_limit > infinite_limiter:
         try:
             short_url = request.base_url.url + create_rshort(data.short_length)
         except AttributeError:
@@ -28,4 +30,7 @@ def create_new_random(request: Request, data: RandomShort, db: Session) -> Rando
             db.refresh(new_short)
             return new_short
         except IntegrityError:  # because short_url is primary key, it will always be IntegrityError on commit
-            db.rollback()  # until we run out of combinations for 4+ 13388280. No way to Test.
+            infinite_limiter += 1
+            db.rollback()  # until we run out of combinations for 4+ 13388280. Using imo Bad way to Test and Stop it.
+    raise HTTPException(status_code=status.HTTP_508_LOOP_DETECTED,
+                        detail="Server can't create short_combination. Might be out of it for this length.")
