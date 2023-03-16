@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from database.models import DbKeys, DbCustom, DbRandom
+from database.models import DbKeys, DbShort
 from schemas.schemas import DeleteExpiredResponse
 from routers_functions.scope_all import del_expired
 
@@ -12,7 +12,7 @@ def delete_all_expired_in_table(admin_key: str, db: Session, db_model: str = "al
     call_time = datetime.utcnow()
     chosen_table = db_model.lower().replace(" ", "")
     if admin_key == os.getenv("admin_key"):
-        tables = [DbKeys, DbCustom, DbRandom]
+        tables = [DbKeys, DbShort]
         if chosen_table == "all":
             for _ in tables:
                 del_expired(db_model=_, db=db, delete_all=True)

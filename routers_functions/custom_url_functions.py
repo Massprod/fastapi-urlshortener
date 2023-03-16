@@ -2,7 +2,7 @@ from fastapi import Request, status, HTTPException
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from schemas.schemas import CustomShort, CustomShortResponse, ShowAllResponse, DeleteCustomResponse
-from database.models import DbCustom, DbKeys
+from database.models import DbKeys, DbShort
 from routers_functions.scope_all import working_url, expire_date, del_expired
 from datetime import datetime
 
@@ -29,18 +29,18 @@ def create_new_custom(request: Request, data: CustomShort, db: Session, api_key:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Provided Url not responding or incorrect")
     new_custom = request.base_url.url + custom_name
-    del_expired(db_model=DbCustom, db=db, del_one_short=new_custom)
-    if exist := db.query(DbCustom).filter_by(short_url=new_custom).first():
+    del_expired(db_model=DbShort, db=db, del_one_short=new_custom)
+    if exist := db.query(DbShort).filter_by(short_url=new_custom).first():
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Custom name already used: '{exist.short_url}'")
     elif not expire_limit_with_key and api_key_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Expire days for Api_key limited to 30")
-    new_custom = DbCustom(origin_url=data.origin_url,
-                          short_url=new_custom,
-                          api_key=api_key,
-                          expire_date=expire_date(days=data.expire_days, seconds=0),
-                          )
+    new_custom = DbShort(origin_url=data.origin_url,
+                         short_url=new_custom,
+                         api_key=api_key,
+                         expire_date=expire_date(days=data.expire_days, seconds=0),
+                         )
     db.add(new_custom)
     db.commit()
     db.refresh(new_custom)
@@ -67,7 +67,7 @@ def delete_by_api_key(request: Request, custom_name: str, api_key: str, db: Sess
     if key_exist := db.query(DbKeys).filter_by(api_key=api_key).first():
         if key_exist.activated:
             chosen_url = request.base_url.url + custom_name.replace(" ", "")
-            if to_delete := db.query(DbCustom).filter_by(short_url=chosen_url).first():
+            if to_delete := db.query(DbShort).filter_by(short_url=chosen_url).first():
                 if to_delete.api_key == key_exist.api_key:
                     db.delete(to_delete)
                     db.commit()

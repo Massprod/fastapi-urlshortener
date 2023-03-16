@@ -3,7 +3,7 @@ from httpx import AsyncClient
 from conf_test_db import shorty, override_db_session
 from routers_functions.scope_all import expire_date
 from schemas.schemas import CustomShort
-from database.models import DbCustom, DbKeys
+from database.models import DbShort
 
 base_url = "http://test/"
 
@@ -41,7 +41,7 @@ async def test_create_new_custom_without_api_key():
                                      )
         assert response.status_code == 200
         created_short = base_url + test_name
-        exist = database.query(DbCustom).filter_by(short_url=created_short).first()
+        exist = database.query(DbShort).filter_by(short_url=created_short).first()
         expire_target = expire_date(days=test_expire_days)
         assert exist
         assert exist.origin_url == test_url
@@ -53,4 +53,3 @@ async def test_create_new_custom_without_api_key():
 # async def test_create_new_custom_with_api_key():
 #     """Test standard response for creating custom_short_url with Api-key"""
 #     async with AsyncClient(app=shorty, base_url=base_url) as client:
-
