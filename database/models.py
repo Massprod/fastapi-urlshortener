@@ -1,20 +1,15 @@
 from database.database import Base
-from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 
-class DbRandom(Base):
-    __tablename__ = "random"
-    short_url = Column(String(length=50), primary_key=True, nullable=False)
-    origin_url = Column(String(length=200), nullable=False)
-    expire_date = Column(DateTime, nullable=False)
-
-
-class DbCustom(Base):
-    __tablename__ = "custom"
+class DbShort(Base):
+    __tablename__ = "short"
     short_url = Column(String(length=200), primary_key=True, nullable=False)
     origin_url = Column(String(length=200), nullable=False)
     expire_date = Column(DateTime, nullable=False)
+
+    length = Column(Integer, nullable=True)
 
     api_key = Column(String, ForeignKey("api_keys.api_key"), nullable=True)
     key_user = relationship("DbKeys", back_populates="custom_urls")
@@ -30,4 +25,4 @@ class DbKeys(Base):
     activated = Column(Boolean, nullable=False)
     expire_date = Column(DateTime, nullable=True)
 
-    custom_urls = relationship("DbCustom", back_populates="key_user")
+    custom_urls = relationship("DbShort", back_populates="key_user")
