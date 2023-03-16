@@ -122,6 +122,6 @@ def del_expired(db_model: Base, db: Session, email: str = None,
 
 
 def check_records_count(db: Session, db_model: Base, length: int):
-    """Count number of records in DbShort for given length"""
+    """Count number of records in Db for given length"""
     records_count = db.query(db_model).filter_by(length=length).count()
     return records_count

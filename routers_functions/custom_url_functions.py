@@ -24,7 +24,7 @@ def create_new_custom(request: Request, data: CustomShort, db: Session, api_key:
                             detail="Custom name can't be empty String and longer than 30 symbols")
     elif not expire_limit and not api_key_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Expire days limited to 10, can't be Negative")
+                            detail=f"Expire days limited to 10, can't be Negative. Use Api-key to expend")
     elif not working_url(data.origin_url):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Provided Url not responding or incorrect")
