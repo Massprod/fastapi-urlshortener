@@ -24,7 +24,7 @@ def create_new_custom(request: Request, data: CustomShort, db: Session, api_key:
                             detail="Custom name can't be empty String and longer than 30 symbols")
     elif not expire_limit and not api_key_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Expire days limited to 10")
+                            detail=f"Expire days limited to 10, can't be Negative")
     elif not working_url(data.origin_url):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Provided Url not responding or incorrect")
@@ -35,7 +35,7 @@ def create_new_custom(request: Request, data: CustomShort, db: Session, api_key:
                             detail=f"Custom name already used: '{exist.short_url}'")
     elif not expire_limit_with_key and api_key_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Expire days for Api_key limited to 30")
+                            detail="Expire days for Api_key limited to 30, can't be Negative")
     new_custom = DbShort(origin_url=data.origin_url,
                          short_url=new_custom,
                          api_key=api_key,
