@@ -25,4 +25,4 @@ class DbKeys(Base):
     activated = Column(Boolean, nullable=False)
     expire_date = Column(DateTime, nullable=True)
 
-    custom_urls = relationship("DbShort", back_populates="key_user")
+    custom_urls = relationship("DbShort", back_populates="key_user", cascade="all, delete,delete-orphan")
