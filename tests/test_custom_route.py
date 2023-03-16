@@ -3,6 +3,8 @@ from conf_test_db import shorty, override_db_session
 from routers_functions.scope_all import expire_date
 from database.models import DbShort
 from tests.test_custom_route_fixtures import *
+import random
+import string
 
 
 @pytest.mark.asyncio()
@@ -72,7 +74,7 @@ async def test_create_new_custom_with_length_limits(base_url):
         assert max_length_response.status_code == 400
         created_short = base_url + test_name
         exist = database.query(DbShort).filter_by(short_url=created_short).first()
-        assert exist is None
+        assert not exist
         empty_string_response = await client.post("/custom/add",
                                                   json={"origin_url": test_url,
                                                         "custom_name": empty_name}
@@ -80,7 +82,7 @@ async def test_create_new_custom_with_length_limits(base_url):
         assert empty_string_response.status_code == 400
         created_short = base_url + empty_name
         exist = database.query(DbShort).filter_by(short_url=created_short).first()
-        assert exist is None
+        assert not exist
 
 
 @pytest.mark.asyncio
@@ -102,7 +104,7 @@ async def test_create_new_custom_expire_limit_without_api_key(base_url, no_key_r
             assert response.status_code == 400
             created_short = base_url + test_name
             exist = database.query(DbShort).filter_by(short_url=created_short).first()
-            assert exist is None
+            assert not exist
 
 
 @pytest.mark.asyncio
@@ -130,4 +132,47 @@ async def test_create_new_custom_expire_limit_with_api_key(base_url, with_key_re
             assert response.status_code == 400
             created_short = base_url + test_name
             exist = database.query(DbShort).filter_by(short_url=created_short).first()
-            assert exist is None
+            assert not exist
+
+
+@pytest.mark.asyncio
+async def test_create_new_custom_with_broken_url(base_url, with_broken_url):
+    """Test standard response for broken Url"""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        test_url = with_broken_url.origin_url
+        test_name = with_broken_url.custom_name
+        test_expire_days = with_broken_url.expire_days
+        response = await client.post("/custom/add",
+                                     json={"origin_url": test_url,
+                                           "custom_name": test_name,
+                                           "expire_days": test_expire_days}
+                                     )
+        assert response.status_code == 400
+        exist = database.query(DbShort).filter_by(origin_url=test_url).first()
+        assert not exist
+
+
+@pytest.mark.asyncio
+async def test_create_new_custom_with_duplicated_custom_name(base_url, duplicate_request):
+    """Test standard response for duplicated custom_name"""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        test_url = duplicate_request.origin_url
+        test_name = duplicate_request.custom_name
+        test_expire_days = duplicate_request.expire_days
+        response = await client.post("/custom/add",
+                                     json={"origin_url": test_url,
+                                           "custom_name": test_name,
+                                           "expire_days": test_expire_days}
+                                     )
+        assert response.status_code == 200
+        duplicate_response = await client.post("/custom/add",
+                                               json={"origin_url": test_url,
+                                                     "custom_name": test_name,
+                                                     "expire_days": test_expire_days}
+                                               )
+        assert duplicate_response.status_code == 403
+        created_short = base_url + test_name
+        exist = database.query(DbShort).filter_by(short_url=created_short).first()
+        assert exist
