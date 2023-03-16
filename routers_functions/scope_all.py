@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-from database.models import *
+from database.models import Base
 
 
 def working_url(url: str, timeout: int = 3) -> bool:
@@ -32,10 +32,10 @@ def expire_date(days: int = 7, seconds: int = 0) -> datetime:
     return expire
 
 
-def create_rshort(length: int = 4) -> str:
-    """Creating Random string with given Length - limit 4 to 10"""
-    if not 3 < length < 11:
-        raise AttributeError("Length should be from 4 to 10")
+def create_rshort(length: int = 3) -> str:
+    """Creating Random string with given Length - limit 1 to 10"""
+    if not 0 < length < 11:
+        raise AttributeError("Length should be from 1 to 10")
     short = "".join(random.choices(string.ascii_letters + string.digits, k=length))
     return short
 
@@ -119,3 +119,9 @@ def del_expired(db_model: Base, db: Session, email: str = None,
                 return True
             return False
         return None
+
+
+def check_records_count(db: Session, db_model: Base, length: int):
+    """Count number of records in DbShort for given length"""
+    records_count = db.query(db_model).filter_by(length=length).count()
+    return records_count
