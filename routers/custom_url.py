@@ -51,7 +51,7 @@ async def show_all_customs(request: Request,  # required by limiter
                       description="Deletes custom short by taking it's Name and Api-key which created it",
                       response_description="Correct Json response with deleted data and Time of the call",
                       )
-@req_limiter.limit(custom_limit)  # path - parameters present, so every call is different path this Why.
+@req_limiter.limit(custom_limit)  # path - parameters is present limiter won't work for different calls
 async def delete_custom_url(request: Request,
                             custom_name: str = Path(description="Created custom name, used in the end of custom Url",
                                                     example="provision",
