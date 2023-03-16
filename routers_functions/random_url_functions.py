@@ -33,7 +33,7 @@ def create_new_random(request: Request, data: RandomShort, db: Session) -> Rando
             db.refresh(new_short)
             return new_short
         except IntegrityError:
-            records_count = check_records_count(db=db, db_model=DbShort, length=set_length)
             db.rollback()
+            records_count = check_records_count(db=db, db_model=DbShort, length=set_length)
     raise HTTPException(status_code=status.HTTP_508_LOOP_DETECTED,
                         detail="Can't create short_combination. Might be out of it for this length.")
