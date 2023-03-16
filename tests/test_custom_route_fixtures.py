@@ -1,9 +1,7 @@
 import pytest
-from pydantic import BaseModel
 from schemas.schemas import CustomShort
-from database.models import DbKeys
-import string
-import random
+from database.models import DbKeys, DbShort
+
 # pytest see these fixtures, but I can't use them anywhere before explicitly Import them.
 # How I understand: they should be Session wide once created, and used without imports.
 # Change it if I find why/how.
@@ -52,3 +50,19 @@ def limits_entity_with_key():
                   activated=True,
                   expire_date=None,
                   )
+
+
+@pytest.fixture(scope="function")
+def with_broken_url():
+    return CustomShort(origin_url="https://www.reddit.com/sdsddsdsdf",
+                       custom_name="broken_url",
+                       expire_days=5,
+                       )
+
+
+@pytest.fixture(scope="function")
+def duplicate_request():
+    return CustomShort(origin_url="https://github.com/Massprod",
+                       custom_name="duplicate_custom",
+                       expire_days=5,
+                       )
