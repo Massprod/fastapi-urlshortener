@@ -1,6 +1,8 @@
+import datetime
 import pytest
 from schemas.schemas import CustomShort
-from database.models import DbKeys, DbShort
+from database.models import DbKeys
+
 
 # pytest see these fixtures, but I can't use them anywhere before explicitly Import them.
 # How I understand: they should be Session wide once created, and used without imports.
@@ -9,7 +11,7 @@ from database.models import DbKeys, DbShort
 
 @pytest.fixture(scope="session")
 def base_url():
-    return "http://test/"
+    return "https://test/"
 
 
 @pytest.fixture(scope="function")
@@ -66,3 +68,75 @@ def duplicate_request():
                        custom_name="duplicate_custom",
                        expire_days=5,
                        )
+
+
+@pytest.fixture(scope="function")
+def show_all_activated_entity():
+    return DbKeys(email="test_show_all_activated@gmail.com",
+                  username="test_show_all_activated",
+                  api_key="showallA",
+                  activation_link="showaallA",
+                  link_send=True,
+                  activated=True,
+                  expire_date=None,
+                  )
+
+
+@pytest.fixture(scope="function")
+def show_all_activated_reqs():
+    test_active_requests = [CustomShort(origin_url="https://github.com/Massprod",
+                                        custom_name="show_all_active_3"),
+                            CustomShort(origin_url="https://github.com/Massprod",
+                                        custom_name="show_all_active_2"),
+                            CustomShort(origin_url="https://github.com/Massprod",
+                                        custom_name="show_all_active_1")
+                            ]
+    return test_active_requests
+
+
+@pytest.fixture(scope="function")
+def show_all_not_activated_entity():
+    return DbKeys(email="test_show_all_not_activated@gmail.com",
+                  username="test_show_all_not_activated",
+                  api_key="showallD",
+                  activation_link="showallD",
+                  link_send=True,
+                  activated=False,
+                  expire_date=datetime.datetime.utcnow() + datetime.timedelta(days=1),
+                  )
+
+
+@pytest.fixture(scope="function")
+def show_all_not_activated_reqs():
+    test_not_active_requests = [CustomShort(origin_url="https://github.com/Massprod/UdemyFastAPI",
+                                            custom_name="show_all_not_active_3"),
+                                CustomShort(origin_url="https://github.com/Massprod/UdemyFastAPI",
+                                            custom_name="show_all_not_active_2"),
+                                CustomShort(origin_url="https://github.com/Massprod/UdemyFastAPI",
+                                            custom_name="show_all_not_active_1"),
+                                ]
+    return test_not_active_requests
+
+
+@pytest.fixture(scope="function")
+def show_all_cascade_delete_entity():
+    return DbKeys(email="test_cascade_deleted@gmail.com",
+                  username="test_cascade_delete_",
+                  api_key="cascDel",
+                  activation_link="cascDel",
+                  link_send=True,
+                  activated=False,
+                  expire_date=datetime.datetime.utcnow() - datetime.timedelta(days=1),
+                  )
+
+
+@pytest.fixture(scope="function")
+def show_all_cascade_delete_reqs():
+    test_cascade_delete_requests = [CustomShort(origin_url="https://github.com/Massprod/UdemyFastAPI",
+                                                custom_name="show_all_cascade_delete_3"),
+                                    CustomShort(origin_url="https://github.com/Massprod/UdemyFastAPI",
+                                                custom_name="show_all_cascade_delete_2"),
+                                    CustomShort(origin_url="https://github.com/Massprod/UdemyFastAPI",
+                                                custom_name="show_all_cascade_delete_1"),
+                                    ]
+    return test_cascade_delete_requests
