@@ -2,7 +2,7 @@ import httpx
 import pytest
 from httpx import AsyncClient
 from conf_test_db import shorty, override_db_session
-from routers_functions.scope_all import expire_date
+from routers_functions.scope_all import expire_date, check_records_count
 from database.models import DbShort
 from math import factorial
 
@@ -18,7 +18,7 @@ async def test_add_new_random():
         db = next(override_db_session())
         response_1 = await client.post("/random/add",
                                        json={"origin_url": "https://github.com/Massprod/FastAPI_UrlShort",
-                                             "short_length": min_length}
+                                             "short_length": min_length + 1}
                                        )
         assert response_1.status_code == 200
         created_short_1 = response_1.json()["short_url"]
@@ -28,7 +28,7 @@ async def test_add_new_random():
         assert target_expire_date.day == db_record_2.expire_date.day
         response_2 = await client.post("/random/add",
                                        json={"origin_url": "https://github.com/Massprod/FastAPI_UrlShort",
-                                             "short_length": max_length}
+                                             "short_length": max_length - 1}
                                        )
         assert response_2.status_code == 200
 
@@ -39,12 +39,12 @@ async def test_add_new_random_with_broken_url():
     async with AsyncClient(app=shorty, base_url="http://test") as client:
         response = await client.post("/random/add",
                                      json={"origin_url": "https://www.reddit.com/testetes",
-                                           "short_length": min_length}
+                                           "short_length": min_length + 2}
                                      )
         assert response.status_code == 400
         timeout_response = await client.post("/random/add",
                                              json={"origin_url": "https://pikabu.ru/dasd",
-                                                   "short_length": max_length}
+                                                   "short_length": max_length - 2}
                                              )
         assert timeout_response.status_code == 400
 
@@ -72,7 +72,9 @@ async def test_add_new_random_with_wrong_length():
 
 @pytest.mark.asyncio
 async def test_add_new_random_infinite_loop_break(mocker):
-    """Test standard response with creating duplicated of short_url, and trying to insert in Db"""
+    """Test standard behaviour with infinitely creating same random_short
+    and running out of all their combinations with given Length.
+    Breaking infinite loop of creating short_urls."""
     async with AsyncClient(app=shorty, base_url="http://test") as client:
         database = next(override_db_session())
         test_length = 10
@@ -87,6 +89,8 @@ async def test_add_new_random_infinite_loop_break(mocker):
                                        )
         assert response_1.status_code == 200
         created_short = "http://test/" + test_short
+        exist = database.query(DbShort).filter_by(short_url=created_short).first()
+        assert exist
         response_2 = await client.post("/random/add",
                                        json={"origin_url": "https://github.com/Massprod/FastAPI_UrlShort",
                                              "short_length": test_length}
@@ -94,3 +98,23 @@ async def test_add_new_random_infinite_loop_break(mocker):
         assert response_2.status_code == 508
         assert pytest.raises(httpx.HTTPStatusError)
         assert database.query(DbShort).filter_by(short_url=created_short).count() == 1
+
+
+@pytest.mark.asyncio
+async def test_add_new_random_records_count():
+    """Test correct function return with selected random_short length"""
+    async with AsyncClient(app=shorty, base_url="http://test") as client:
+        database = next(override_db_session())
+        test_length = 1
+        test_quantity = 5
+        for _ in range(test_quantity):
+            response = await client.post("/random/add",
+                                         json={"origin_url": "https://github.com/Massprod/FastAPI_UrlShort",
+                                               "short_length": test_length}
+                                         )
+            assert response.status_code == 200
+            created_short = response.json()["short_url"]
+            exist = database.query(DbShort).filter_by(short_url=created_short).first()
+            assert exist
+        exist_length_records = check_records_count(db=database, db_model=DbShort, length=test_length)
+        assert exist_length_records == test_quantity
