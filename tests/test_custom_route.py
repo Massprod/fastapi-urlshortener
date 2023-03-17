@@ -1,3 +1,5 @@
+import os
+
 from httpx import AsyncClient
 from conf_test_db import shorty, override_db_session
 from routers_functions.scope_all import expire_date
@@ -18,7 +20,8 @@ async def test_create_new_custom_without_api_key(base_url, no_key_request):
         response = await client.post("/custom/add",
                                      json={"origin_url": test_url,
                                            "custom_name": test_name,
-                                           "expire_days": test_expire_days}
+                                           "expire_days": test_expire_days,
+                                           }
                                      )
         assert response.status_code == 200
         created_short = base_url + test_name
@@ -47,7 +50,8 @@ async def test_create_new_custom_with_api_key(base_url, with_key_entity, with_ke
                                      headers={"api-key": test_api_key},
                                      json={"origin_url": test_url,
                                            "custom_name": test_name,
-                                           "expire_days": test_expire_days}
+                                           "expire_days": test_expire_days,
+                                           }
                                      )
         assert response.status_code == 200
         created_short = base_url + test_name
@@ -69,7 +73,8 @@ async def test_create_new_custom_with_length_limits(base_url):
         empty_name = ""
         max_length_response = await client.post("/custom/add",
                                                 json={"origin_url": test_url,
-                                                      "custom_name": test_name}
+                                                      "custom_name": test_name,
+                                                      }
                                                 )
         assert max_length_response.status_code == 400
         created_short = base_url + test_name
@@ -77,7 +82,8 @@ async def test_create_new_custom_with_length_limits(base_url):
         assert not exist
         empty_string_response = await client.post("/custom/add",
                                                   json={"origin_url": test_url,
-                                                        "custom_name": empty_name}
+                                                        "custom_name": empty_name,
+                                                        }
                                                   )
         assert empty_string_response.status_code == 400
         created_short = base_url + empty_name
@@ -99,7 +105,8 @@ async def test_create_new_custom_expire_limit_without_api_key(base_url, no_key_r
             response = await client.post("custom/add",
                                          json={"origin_url": test_url,
                                                "custom_name": test_name,
-                                               "expire_days": value}
+                                               "expire_days": value,
+                                               }
                                          )
             assert response.status_code == 400
             created_short = base_url + test_name
@@ -127,7 +134,8 @@ async def test_create_new_custom_expire_limit_with_api_key(base_url, with_key_re
                                          headers={"api-key": test_api_key},
                                          json={"origin_url": test_url,
                                                "custom_name": test_name,
-                                               "expire_days": value}
+                                               "expire_days": value,
+                                               }
                                          )
             assert response.status_code == 400
             created_short = base_url + test_name
@@ -146,7 +154,8 @@ async def test_create_new_custom_with_broken_url(base_url, with_broken_url):
         response = await client.post("/custom/add",
                                      json={"origin_url": test_url,
                                            "custom_name": test_name,
-                                           "expire_days": test_expire_days}
+                                           "expire_days": test_expire_days,
+                                           }
                                      )
         assert response.status_code == 400
         exist = database.query(DbShort).filter_by(origin_url=test_url).first()
@@ -164,15 +173,147 @@ async def test_create_new_custom_with_duplicated_custom_name(base_url, duplicate
         response = await client.post("/custom/add",
                                      json={"origin_url": test_url,
                                            "custom_name": test_name,
-                                           "expire_days": test_expire_days}
+                                           "expire_days": test_expire_days,
+                                           }
                                      )
         assert response.status_code == 200
         duplicate_response = await client.post("/custom/add",
                                                json={"origin_url": test_url,
                                                      "custom_name": test_name,
-                                                     "expire_days": test_expire_days}
+                                                     "expire_days": test_expire_days,
+                                                     }
                                                )
         assert duplicate_response.status_code == 403
         created_short = base_url + test_name
         exist = database.query(DbShort).filter_by(short_url=created_short).first()
         assert exist
+
+
+@pytest.mark.asyncio
+async def test_show_all_custom_with_activated_api_key(base_url,
+                                                      show_all_activated_reqs,
+                                                      show_all_activated_entity,
+                                                      ):
+    """Test standard response for GET request with activated Api-key"""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        database.add(show_all_activated_entity)
+        database.commit()
+        test_api_key = show_all_activated_entity.api_key
+        key_exist = database.query(DbKeys).filter_by(api_key=test_api_key).first()
+        assert key_exist
+        assert key_exist.activated is True
+        test_requests = show_all_activated_reqs
+        for request in test_requests:
+            response = await client.post("/custom/add",
+                                         headers={"api-key": test_api_key},
+                                         json={"origin_url": request.origin_url,
+                                               "custom_name": request.custom_name,
+                                               }
+                                         )
+            assert response.status_code == 200
+            created_short = base_url + request.custom_name
+            exist = database.query(DbShort).filter_by(short_url=created_short).first()
+            assert exist
+            assert exist.api_key == test_api_key
+        test_email = show_all_activated_entity.email
+        test_username = show_all_activated_entity.username
+        test_identifiers = [test_api_key, test_username, test_email]
+        for identifier in test_identifiers:
+            response = await client.get("/custom/all",
+                                        headers={"identifier": identifier},
+                                        )
+            assert response.status_code == 200
+            response_data = response.json()
+            associated_urls = response_data["custom_urls"]
+            assert len(associated_urls) == 3
+            assert response_data["email"] == test_email
+
+
+@pytest.mark.asyncio
+async def test_show_all_custom_with_not_activated_api_key(base_url,
+                                                          show_all_not_activated_reqs,
+                                                          show_all_not_activated_entity,
+                                                          ):
+    """Test standard response for GET request with Not activated Api-key"""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        database.add(show_all_not_activated_entity)
+        database.commit()
+        test_api_key = show_all_not_activated_entity.api_key
+        key_exist = database.query(DbKeys).filter_by(api_key=test_api_key).first()
+        assert key_exist
+        assert key_exist.activated is False
+        test_requests = show_all_not_activated_reqs
+        for request in test_requests:
+            response = await client.post("/custom/add",
+                                         headers={"api-key": test_api_key},
+                                         json={"origin_url": request.origin_url,
+                                               "custom_name": request.custom_name,
+                                               }
+                                         )
+            assert response.status_code == 200
+            created_short = base_url + request.custom_name
+            exist = database.query(DbShort).filter_by(short_url=created_short).first()
+            assert exist
+            assert exist.api_key == test_api_key
+        test_email = show_all_not_activated_entity.email
+        test_username = show_all_not_activated_entity.username
+        test_identifiers = [test_email, test_api_key, test_username]
+        for identifier in test_identifiers:
+            response = await client.get("/custom/all",
+                                        headers={"identifier": identifier},
+                                        )
+            assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_show_all_custom_with_cascade_delete_expired_api_key(base_url,
+                                                                   show_all_cascade_delete_entity,
+                                                                   show_all_cascade_delete_reqs,
+                                                                   ):
+    """Test standard response for deleting children records with expired BUT already used Api-key.
+    We allow using Api-key without activation, and delete all records and Key after expiration time."""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        database.add(show_all_cascade_delete_entity)
+        database.commit()
+        test_api_key = show_all_cascade_delete_entity.api_key
+        key_exist = database.query(DbKeys).filter_by(api_key=test_api_key).first()
+        admin_key = os.getenv("admin_key")
+        assert key_exist
+        assert key_exist.activated is False
+        created_shorts = []
+        test_requests = show_all_cascade_delete_reqs
+        for request in test_requests:
+            response = await client.post("/custom/add",
+                                         headers={"api-key": test_api_key},
+                                         json={"origin_url": request.origin_url,
+                                               "custom_name": request.custom_name,
+                                               }
+                                         )
+            assert response.status_code == 200
+            created_short = base_url + request.custom_name
+            created_shorts.append(created_short)
+            exist = database.query(DbShort).filter_by(short_url=created_short).first()
+            assert exist
+            assert exist.api_key == test_api_key
+        test_email = show_all_cascade_delete_entity.email
+        test_username = show_all_cascade_delete_entity.username
+        test_identifiers = [test_email, test_api_key, test_username]
+        for identifier in test_identifiers:
+            response = await client.get("/custom/all",
+                                        headers={"identifier": identifier},
+                                        )
+            assert response.status_code == 403
+        cascade_delete_response = await client.delete("/delete/expired",
+                                                      headers={"admin-key": admin_key,
+                                                               "db-model": "dbkeys",
+                                                               }
+                                                      )
+        assert cascade_delete_response.status_code == 200
+        for short in created_shorts:
+            short_still_exist = database.query(DbShort).filter_by(short_url=short).first()
+            assert short_still_exist is None
+        key_still_exist = database.query(DbKeys).filter_by(api_key=test_api_key).first()
+        assert key_still_exist is None
