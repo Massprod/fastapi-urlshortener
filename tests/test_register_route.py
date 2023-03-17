@@ -6,11 +6,15 @@ from routers_functions.scope_all import expire_date
 from datetime import datetime, timedelta
 from schemas.schemas import NewKey
 
-correct_new_key = NewKey(email="test_send@gmail.com",
-                         username="test_name")
 
-wrong_new_key = NewKey(email="test wrong@supppose_wrong.com",
-                       username="test_name_2")
+@pytest.fixture
+def correct_new_key():
+    return NewKey(email="test_sendrt@gmail.com",
+                  username="test_name2345")
+
+
+wrong_new_key = NewKey(email="test wrong@suppp_wrong.com",
+                       username="test_name_22345")
 
 existed_email = DbKeys(email="existed_email@gmail.com",
                        username="existed_email_test",
@@ -52,15 +56,16 @@ test_activation_link = NewKey(email="activation_test@gmail.com",
 
 
 @pytest.mark.asyncio
-async def test_register_new_key():
+async def test_register_new_key(correct_new_key):
     """Test standard response for creating new api-key"""
-    async with AsyncClient(app=shorty, base_url="http://test") as client:
+    async with AsyncClient(app=shorty, base_url="https://test") as client:
         database = next(override_db_session())
         test_email = correct_new_key.email
         test_username = correct_new_key.username
         response = await client.post("/register/new",
                                      json={"email": test_email,
-                                           "username": test_username}
+                                           "username": test_username,
+                                           }
                                      )
         assert response.status_code == 200
         response_body = response.json()
@@ -75,7 +80,7 @@ async def test_register_new_key():
 async def test_register_new_key_with_empty_username():
     async with AsyncClient(app=shorty, base_url="https://test") as client:
         response = await client.post("/register/new",
-                                     json={"email": "empty",
+                                     json={"email": "empty@gmail.com",
                                            "username": ""
                                            }
                                      )
@@ -88,12 +93,13 @@ async def test_register_new_key_with_empty_username():
 @pytest.mark.asyncio
 async def test_register_new_key_with_wrong_domain():
     """Test standard response with wrong email domain"""
-    async with AsyncClient(app=shorty, base_url="http://test") as client:
+    async with AsyncClient(app=shorty, base_url="https://test") as client:
         test_email = wrong_new_key.email
         test_username = wrong_new_key.username
         response = await client.post("/register/new",
                                      json={"email": test_email,
-                                           "username": test_username}
+                                           "username": test_username,
+                                           }
                                      )
         assert response.status_code == 400
 
