@@ -1,5 +1,5 @@
 import os
-
+from sqlalchemy import or_
 from httpx import AsyncClient
 from conf_test_db import shorty, override_db_session
 from routers_functions.scope_all import expire_date
@@ -317,3 +317,112 @@ async def test_show_all_custom_with_cascade_delete_expired_api_key(base_url,
             assert short_still_exist is None
         key_still_exist = database.query(DbKeys).filter_by(api_key=test_api_key).first()
         assert key_still_exist is None
+
+
+@pytest.mark.asyncio
+async def test_show_all_custom_with_wrong_identifiers(base_url,
+                                                      show_all_wrong_identifier_entity,
+                                                      ):
+    """Test standard response for GET requests with not registered identifiers"""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        test_email = show_all_wrong_identifier_entity.email
+        test_username = show_all_wrong_identifier_entity.username
+        test_api_key = show_all_wrong_identifier_entity.api_key
+        test_identifiers = [test_email, test_username, test_api_key]
+        for identifier in test_identifiers:
+            response = await client.get("/custom/all",
+                                        headers={"identifier": identifier},
+                                        )
+            assert response.status_code == 404
+        exist_identifiers = database.query(DbKeys).filter(or_(DbKeys.email == identifier,
+                                                              DbKeys.username == identifier,
+                                                              DbKeys.api_key == identifier)).first()
+        assert not exist_identifiers
+
+
+@pytest.mark.asyncio
+async def test_delete_by_api_key_with_wrong_key(base_url):
+    """Test standard response for DELETE request with not registered Api-key"""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        test_custom_name = "notExis"
+        test_api_key = "notExis"
+        response = await client.delete(f"custom/delete/{test_custom_name}",
+                                       headers={"api-key": test_api_key}
+                                       )
+        assert response.status_code == 404
+        exist = database.query(DbKeys).filter_by(api_key=test_api_key).first()
+        assert exist is None
+
+
+@pytest.mark.asyncio
+async def test_delete_by_api_key_with_not_activated_key(base_url,
+                                                        delete_by_api_key_not_activated_entity,
+                                                        ):
+    """Test standard response for DELETE request with not activated Api-key"""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        database.add(delete_by_api_key_not_activated_entity)
+        database.commit()
+        test_custom_name = "noActi"
+        test_api_key = delete_by_api_key_not_activated_entity.api_key
+        response = await client.delete(f"custom/delete/{test_custom_name}",
+                                       headers={"api-key": test_api_key}
+                                       )
+        assert response.status_code == 403
+        exist = database.query(DbKeys).filter_by(api_key=test_api_key).first()
+        assert exist.activated is False
+
+
+@pytest.mark.asyncio
+async def test_delete_by_api_key_with_activated_key_not_exist_custom_name(base_url,
+                                                                          delete_by_api_key_not_exist_name_entity,
+                                                                          ):
+    """Test standard response for DELETE request with activated Api-key BUT not existing custom name"""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        database.add(delete_by_api_key_not_exist_name_entity)
+        database.commit()
+        test_wrong_name = "not_exist_delete"
+        test_api_key = delete_by_api_key_not_exist_name_entity.api_key
+
+        response = await client.delete(f"/custom/delete/{test_wrong_name}",
+                                       headers={"api-key": test_api_key},
+                                       )
+        assert response.status_code == 404
+        exist = database.query(DbShort).filter_by(short_url=base_url + test_wrong_name).first()
+        assert exist is None
+
+
+@pytest.mark.asyncio
+async def test_delete_by_api_key_with_activated_key_wrong_custom_name(base_url,
+                                                                      delete_by_api_key_wrong_name_entity,
+                                                                      delete_by_api_key_wrong_name_request,
+                                                                      ):
+    """Test standard response for DELETE request with activated Api-key BUT wrong custom name for this key"""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        database.add(delete_by_api_key_wrong_name_entity)
+        database.commit()
+        test_url = delete_by_api_key_wrong_name_request.origin_url
+        test_custom_name = delete_by_api_key_wrong_name_request.custom_name
+        test_api_key = delete_by_api_key_wrong_name_entity.api_key
+        test_wrong_api_key = "not" + test_api_key
+        new_record = await client.post("/custom/add",
+                                       headers={"api-key": test_wrong_api_key},
+                                       json={"origin_url": test_url,
+                                             "custom_name": test_custom_name,
+                                             }
+                                       )
+        created_short = base_url + test_custom_name
+        assert new_record.status_code == 200
+        response = await client.delete(f"/custom/delete/{test_custom_name}",
+                                       headers={"api-key": test_api_key}
+                                       )
+        assert response.status_code == 403
+        activated = database.query(DbKeys).filter_by(api_key=test_api_key).first()
+        assert activated.activated
+        new_record_exist = database.query(DbShort).filter_by(short_url=created_short).first()
+        assert new_record_exist
+        assert new_record_exist.api_key != test_api_key
