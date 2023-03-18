@@ -1,10 +1,11 @@
 import httpx
-import pytest
 from httpx import AsyncClient
 from conf_test_db import shorty, override_db_session
 from routers_functions.scope_all import expire_date, check_records_count
 from database.models import DbShort
 from math import factorial
+from datetime import datetime, timedelta
+from tests.test_random_route_fixtures import *
 
 max_length = 10
 min_length = 1
@@ -31,6 +32,43 @@ async def test_add_new_random():
                                              "short_length": max_length - 1}
                                        )
         assert response_2.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_add_new_random_with_expired_short(base_url,
+                                                 mocker,
+                                                 expired_short_request,
+                                                 expired_short_override_request,
+                                                 ):
+    """Test standard response with overriding expired duplicate"""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        test_name = "duplicate_expire"
+        test_expire = datetime.utcnow() - timedelta(days=1)
+        test_url = expired_short_override_request.origin_url
+        test_override_url = expired_short_request.origin_url
+        mocker.patch("routers_functions.random_url_functions.create_rshort",
+                     return_value=test_name)
+        mocker.patch("routers_functions.random_url_functions.expire_date",
+                     return_value=test_expire)
+        new_record = await client.post("/random/add",
+                                       json={"origin_url": test_override_url},
+                                       )
+        assert new_record.status_code == 200
+        created_short = base_url + test_name
+        new_record_exist = database.query(DbShort).filter_by(short_url=created_short).first()
+        assert new_record_exist
+        assert new_record_exist.origin_url == test_override_url
+        assert new_record_exist.expire_date == test_expire
+        override_record = await client.post("/random/add",
+                                            json={"origin_url": test_url},
+                                            )
+        assert override_record.status_code == 200
+        override_exist = database.query(DbShort).filter_by(short_url=created_short).first()
+        database.refresh(override_exist)
+        assert override_exist
+        assert override_exist.origin_url == test_url
+        assert new_record_exist.expire_date == test_expire
 
 
 @pytest.mark.asyncio
