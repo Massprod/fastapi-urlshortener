@@ -426,3 +426,33 @@ async def test_delete_by_api_key_with_activated_key_wrong_custom_name(base_url,
         new_record_exist = database.query(DbShort).filter_by(short_url=created_short).first()
         assert new_record_exist
         assert new_record_exist.api_key != test_api_key
+
+
+@pytest.mark.asyncio
+async def test_delete_by_api_key_wih_correct_request(base_url,
+                                                     delete_by_api_key_correct_request,
+                                                     delete_by_api_key_correct_name_entity,
+                                                     ):
+    """Test standard response for DELETE request"""
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
+        database = next(override_db_session())
+        database.add(delete_by_api_key_correct_name_entity)
+        database.commit()
+        test_url = delete_by_api_key_correct_request.origin_url
+        test_custom_name = delete_by_api_key_correct_request.custom_name
+        test_api_key = delete_by_api_key_correct_name_entity.api_key
+        new_record = await client.post("/custom/add",
+                                       headers={"api-key": test_api_key},
+                                       json={"origin_url": test_url,
+                                             "custom_name": test_custom_name}
+                                       )
+        created_short = base_url + test_custom_name
+        new_record_exist = database.query(DbShort).filter_by(short_url=created_short).first()
+        assert new_record_exist
+        assert new_record.status_code == 200
+        response = await client.delete(f"/custom/delete/{test_custom_name}",
+                                       headers={"api-key": test_api_key}
+                                       )
+        assert response.status_code == 200
+        new_record_still_exist = database.query(DbShort).filter_by(short_url=created_short).first()
+        assert new_record_still_exist is None
