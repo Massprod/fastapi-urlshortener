@@ -11,7 +11,7 @@ class DbShort(Base):
 
     length = Column(Integer, nullable=True)
 
-    api_key = Column(String, ForeignKey("api_keys.api_key"), nullable=True)
+    api_key = Column(String(length=11), ForeignKey("api_keys.api_key"), nullable=True)
     key_user = relationship("DbKeys", back_populates="custom_urls")
 
 
