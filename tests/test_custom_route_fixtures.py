@@ -163,17 +163,6 @@ def delete_by_api_key_not_activated_entity():
 
 
 @pytest.fixture(scope="function")
-def delete_by_api_key_activated_entity():
-    return DbKeys(email="test_delete_activated@gmail.com",
-                  username="test_delete_activated",
-                  api_key="yeActi",
-                  activation_link="yeActi",
-                  link_send=True,
-                  activated=True,
-                  )
-
-
-@pytest.fixture(scope="function")
 def delete_by_api_key_not_exist_name_entity():
     return DbKeys(email="test_delete_not_exist_name@gmail.com",
                   username="test_delete_not_exist_name",
