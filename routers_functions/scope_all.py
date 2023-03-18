@@ -92,7 +92,6 @@ def del_expired(db_model: Base, db: Session, email: str = None,
                         db.delete(_)
             db.commit()
             return True
-        return False
     elif email:
         if exp_data := db.query(db_model).filter_by(email=email).first():
             if exp_data.expire_date is None:
