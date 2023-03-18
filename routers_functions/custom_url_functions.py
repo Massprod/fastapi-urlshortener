@@ -84,4 +84,4 @@ def delete_by_api_key(request: Request, custom_name: str, api_key: str, db: Sess
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Api key not Activated")
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                        detail="No such Api-key")
+                        detail=f"No such Api-key: {api_key}")
