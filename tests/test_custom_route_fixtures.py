@@ -1,7 +1,7 @@
 import datetime
 import pytest
 from schemas.schemas import CustomShort
-from database.models import DbKeys, DbShort
+from database.models import DbKeys
 
 
 # pytest see these fixtures, but I can't use them anywhere before explicitly Import them.
@@ -84,11 +84,11 @@ def show_all_activated_entity():
 
 @pytest.fixture(scope="function")
 def show_all_activated_reqs():
-    test_active_requests = [CustomShort(origin_url="https://github.com/Massprod",
+    test_active_requests = [CustomShort(origin_url="https://docs.pytest.org/en/7.1.x/how-to/fixtures.html",
                                         custom_name="show_all_active_3"),
-                            CustomShort(origin_url="https://github.com/Massprod",
+                            CustomShort(origin_url="https://docs.pytest.org/en/7.1.x/how-to/fixtures.html",
                                         custom_name="show_all_active_2"),
-                            CustomShort(origin_url="https://github.com/Massprod",
+                            CustomShort(origin_url="https://docs.pytest.org/en/7.1.x/how-to/fixtures.html",
                                         custom_name="show_all_active_1")
                             ]
     return test_active_requests
