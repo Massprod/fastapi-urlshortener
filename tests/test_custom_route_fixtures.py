@@ -1,12 +1,12 @@
 import datetime
 import pytest
 from schemas.schemas import CustomShort
-from database.models import DbKeys
+from database.models import DbKeys, DbShort
 
 
 # pytest see these fixtures, but I can't use them anywhere before explicitly Import them.
 # How I understand: they should be Session wide once created, and used without imports.
-# Change it if I find why/how.
+# Change it if I find why/how. Maybe generators?
 
 
 @pytest.fixture(scope="session")
@@ -140,3 +140,81 @@ def show_all_cascade_delete_reqs():
                                                 custom_name="show_all_cascade_delete_1"),
                                     ]
     return test_cascade_delete_requests
+
+
+@pytest.fixture(scope="function")
+def show_all_wrong_identifier_entity():
+    test_wrong_identifiers_entity = DbKeys(email="test_wrong_identifier@gmail.com",
+                                           username="test_wrong_identifier",
+                                           api_key="wrongIde",
+                                           )
+    return test_wrong_identifiers_entity
+
+
+@pytest.fixture(scope="function")
+def delete_by_api_key_not_activated_entity():
+    return DbKeys(email="test_delete_not_activated@gmail.com",
+                  username="test_delete_not_activated",
+                  api_key="notActi",
+                  activation_link="notActi",
+                  link_send=True,
+                  activated=False,
+                  )
+
+
+@pytest.fixture(scope="function")
+def delete_by_api_key_activated_entity():
+    return DbKeys(email="test_delete_activated@gmail.com",
+                  username="test_delete_activated",
+                  api_key="yeActi",
+                  activation_link="yeActi",
+                  link_send=True,
+                  activated=True,
+                  )
+
+
+@pytest.fixture(scope="function")
+def delete_by_api_key_not_exist_name_entity():
+    return DbKeys(email="test_delete_not_exist_name@gmail.com",
+                  username="test_delete_not_exist_name",
+                  api_key="neName",
+                  activation_link="neName",
+                  link_send=True,
+                  activated=True,
+                  )
+
+
+@pytest.fixture(scope="function")
+def delete_by_api_key_wrong_name_entity():
+    return DbKeys(email="test_delete_wrong_name@gamil.com",
+                  username="test_delete_wrong_name",
+                  api_key="wrName",
+                  activation_link="wrName",
+                  link_send=True,
+                  activated=True,
+                  )
+
+
+@pytest.fixture(scope="function")
+def delete_by_api_key_wrong_name_request():
+    return CustomShort(origin_url="https://docs.python.org/3.11/",
+                       custom_name="test_delete_wrong_name",
+                       )
+
+
+@pytest.fixture(scope="function")
+def delete_by_api_key_correct_name_entity():
+    return DbKeys(email="test_delete_correct_name@gamil.com",
+                  username="test_delete_correct_name",
+                  api_key="corName",
+                  activation_link="corName",
+                  link_send=True,
+                  activated=True,
+                  )
+
+
+@pytest.fixture(scope="function")
+def delete_by_api_key_correct_request():
+    return CustomShort(origin_url="https://docs.python.org/3.11/",
+                       custom_name="test_delete_correct_name",
+                       )
