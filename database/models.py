@@ -20,7 +20,7 @@ class DbKeys(Base):
     email = Column(String(length=80), primary_key=True, nullable=False)
     username = Column(String(length=80), nullable=False)
     api_key = Column(String(length=11), nullable=False)
-    activation_link = Column(String(length=12), nullable=False)
+    activation_link = Column(String(length=50), nullable=False)
     link_send = Column(Boolean, nullable=False)
     activated = Column(Boolean, nullable=False)
     expire_date = Column(DateTime, nullable=True)

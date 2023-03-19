@@ -5,8 +5,8 @@ from database.models import DbShort
 from routers_functions.scope_all import del_expired
 
 
-def redirect(req: Request, short_key: str, db: Session):
-    short_url = req.base_url.url + short_key.replace(" ", "")  # next time create function to clear spaces, 3+ occurs
+def redirect(request: Request, short_key: str, db: Session):
+    short_url = str(request.base_url) + short_key.replace(" ", "")  # next time create function to clear spaces, 3+ occurs
     tables = [DbShort]
     for _ in tables:
         del_expired(db_model=_, db=db, del_one_short=short_url)

@@ -52,7 +52,7 @@ def add_new_key(request: Request, data: NewKey, db: Session) -> NewKeyResponse:
 
 def activate_new_key(request: Request, activation_key: str, db: Session) -> ActivateResponse:
     """Checking existence of Activation link in Db and changing it status if Activated"""
-    activation_link = str(request.base_url) + "/register/" + "activate/" + activation_key.replace(" ", "")
+    activation_link = str(request.base_url) + "register/" + "activate/" + activation_key.replace(" ", "")
     if exist := db.query(DbKeys).filter_by(activation_link=activation_link).first():
         act_entity = db.get(DbKeys, exist.email)
         act_entity.activation_link = f"key: {activation_key} " \
