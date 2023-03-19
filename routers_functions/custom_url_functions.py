@@ -28,7 +28,7 @@ def create_new_custom(request: Request, data: CustomShort, db: Session, api_key:
     elif not working_url(data.origin_url):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Provided Url not responding or incorrect")
-    new_custom = request.base_url.url + custom_name
+    new_custom = str(request.base_url) + custom_name
     del_expired(db_model=DbShort, db=db, del_one_short=new_custom)
     if exist := db.query(DbShort).filter_by(short_url=new_custom).first():
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
@@ -66,7 +66,7 @@ def delete_by_api_key(request: Request, custom_name: str, api_key: str, db: Sess
     """Deletes custom_short from Db by its name, if it's associated with given Api-key"""
     if key_exist := db.query(DbKeys).filter_by(api_key=api_key).first():
         if key_exist.activated:
-            chosen_url = request.base_url.url + custom_name.replace(" ", "")
+            chosen_url = str(request.base_url) + custom_name.replace(" ", "")
             if to_delete := db.query(DbShort).filter_by(short_url=chosen_url).first():
                 if to_delete.api_key == key_exist.api_key:
                     db.delete(to_delete)

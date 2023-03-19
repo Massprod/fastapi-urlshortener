@@ -17,7 +17,7 @@ def create_new_random(request: Request, data: RandomShort, db: Session) -> Rando
     records_count = 0
     while records_limit > records_count:
         try:
-            short_url = request.base_url.url + create_rshort(set_length)
+            short_url = str(request.base_url) + create_rshort(set_length)
         except AttributeError:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Length limited from 1 to 10")
