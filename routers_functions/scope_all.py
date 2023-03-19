@@ -3,6 +3,7 @@ import smtplib
 import requests
 import random
 import string
+from fastapi import HTTPException, status
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
@@ -46,7 +47,6 @@ def create_send_key(receiver: str, link: str, api_key: str) -> bool:
         email = os.getenv("EMAIL")
         email_key = os.getenv("EMAIL_KEY")
         msg = MIMEMultipart("alternative")
-
         html_part = f"""
                         <html>
                         <head></head>
@@ -72,6 +72,9 @@ def create_send_key(receiver: str, link: str, api_key: str) -> bool:
                      )
         con.close()
         return True
+    except smtplib.SMTPAuthenticationError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail="Email sender not Authenticated. Set correct ENV")
     except smtplib.SMTPException:
         return False
 
@@ -100,6 +103,7 @@ def del_expired(db_model: Base, db: Session, email: str = None,
                 db.delete(exp_data)
                 db.commit()
                 return True
+            return False
         return None
     elif username:
         if exp_data := db.query(db_model).filter_by(username=username).first():
@@ -109,6 +113,7 @@ def del_expired(db_model: Base, db: Session, email: str = None,
                 db.delete(exp_data)
                 db.commit()
                 return True
+            return False
         return None
     elif del_one_short:
         if exp_data := db.query(db_model).filter_by(short_url=del_one_short).first():
@@ -117,7 +122,6 @@ def del_expired(db_model: Base, db: Session, email: str = None,
                 db.commit()
                 return True
             return False
-        return None
 
 
 def check_records_count(db: Session, db_model: Base, length: int):
