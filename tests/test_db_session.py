@@ -1,6 +1,6 @@
 from sqlalchemy import inspect
 from sqlalchemy.orm.session import Session
-from database.database import db_session, engine
+from database.database import engine, db_session
 from database.models import DbShort, DbKeys
 import pytest
 
