@@ -84,10 +84,12 @@ test_activation_link = NewKey(email="activation_test@gmail.com",
 
 
 @pytest.mark.asyncio
-async def test_register_new_key(correct_new_key):
+async def test_register_new_key(correct_new_key, mocker):
     """Test standard response for creating new api-key"""
     async with AsyncClient(app=shorty, base_url="https://test") as client:
         database = next(override_db_session())
+        mocker.patch("routers_functions.register_functions.create_send_key",
+                     return_value=True)
         test_email = correct_new_key.email
         test_username = correct_new_key.username
         response = await client.post("/register/new",
