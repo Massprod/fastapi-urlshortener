@@ -24,7 +24,7 @@ def correct_new_key():
                   username="test_name2345")
 
 
-wrong_new_key = NewKey(email="test wrong@suppp_wrong.com",
+wrong_new_key = NewKey(email="test wrongNotvalid@wrtondfg@gil.",
                        username="test_name_22345")
 
 existed_email = DbKeys(email="existed_email@gmail.com",
@@ -88,8 +88,6 @@ async def test_register_new_key(correct_new_key, mocker):
     """Test standard response for creating new api-key"""
     async with AsyncClient(app=shorty, base_url="https://test") as client:
         database = next(override_db_session())
-        mocker.patch("routers_functions.register_functions.create_send_key",
-                     return_value=True)
         test_email = correct_new_key.email
         test_username = correct_new_key.username
         response = await client.post("/register/new",
@@ -97,7 +95,6 @@ async def test_register_new_key(correct_new_key, mocker):
                                            "username": test_username,
                                            }
                                      )
-        print(response.json())
         assert response.status_code == 200
         response_body = response.json()
         assert response_body["link_send"] is True
@@ -122,8 +119,8 @@ async def test_register_new_key_with_empty_username():
 # and only after getting email verification about receiver not found, we can do something.
 # Instantly raise error if domain is wrong. Only way to test this for now.
 @pytest.mark.asyncio
-async def test_register_new_key_with_wrong_domain():
-    """Test standard response with wrong email domain"""
+async def test_register_new_key_with_not_valid_email():
+    """Test standard response with not valid email type"""
     async with AsyncClient(app=shorty, base_url="https://test") as client:
         test_email = wrong_new_key.email
         test_username = wrong_new_key.username
