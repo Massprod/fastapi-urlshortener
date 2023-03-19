@@ -5,9 +5,9 @@ on:
     branches: [ master ]
 
 env:
-  SHORTY_ADMIN_KEY: ${{ vars.ENV_CONTEXT_VAR }}
   SHORTY_EMAIL: ${{ vars.ENV_CONTEXT_VAR }}
   SHORTY_EMAIL_KEY: ${{ vars.ENV_CONTEXT_VAR }}
+  SHORTY_ADMIN_KEY: ${{ vars.ENV_CONTEXT_VAR }}
 jobs:
   build:
     runs-on: ubuntu-latest
