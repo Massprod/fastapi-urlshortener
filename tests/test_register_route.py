@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from httpx import AsyncClient
 from conf_test_db import shorty, override_db_session
@@ -5,6 +7,15 @@ from database.models import DbKeys
 from routers_functions.scope_all import expire_date
 from datetime import datetime, timedelta
 from schemas.schemas import NewKey
+
+
+def set_not_expired(days: int):
+    return datetime.utcnow() + timedelta(days=days)
+
+
+@pytest.fixture(scope="session")
+def register_base_url():
+    return "https://register_test"
 
 
 @pytest.fixture
@@ -33,6 +44,23 @@ existed_username = DbKeys(email="existed_username@gmail.com",
                           activated=True,
                           expire_date=None,
                           )
+
+not_activated_email = DbKeys(email="not_activated_email@gmail.com",
+                             username="not_activated_email",
+                             api_key="notAcEma",
+                             activation_link="not_acti_email",
+                             link_send=True,
+                             activated=False,
+                             expire_date=set_not_expired(1),
+                             )
+
+not_activated_username = DbKeys(email="not_activated_username@gmail.com",
+                                username="not_activated_username",
+                                api_key="notAcUse",
+                                activation_link="not_acti_user",
+                                link_send=True,
+                                activated=False,
+                                expire_date=set_not_expired(1))
 
 test_expired_email = DbKeys(email="expired_email@gmail.com",
                             username="not_expired_username",
@@ -188,9 +216,45 @@ async def test_register_new_key_with_expired_username():
 
 
 @pytest.mark.asyncio
+async def test_register_new_key_with_not_activated_email(register_base_url):
+    """Test standard response for duplicating not activated Email"""
+    async with AsyncClient(app=shorty, base_url=register_base_url) as client:
+        database = next(override_db_session())
+        database.add(not_activated_email)
+        database.commit()
+        test_email = not_activated_email.email
+        test_username = not_activated_email.username
+        response = await client.post("/register/new",
+                                     json={"email": test_email,
+                                           "username": test_username,
+                                           }
+                                     )
+        assert response.status_code == 403
+        assert test_email in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_register_new_key_with_not_activated_username(register_base_url):
+    """Test standard response for duplicating Not activated username"""
+    async with AsyncClient(app=shorty, base_url=register_base_url) as client:
+        database = next(override_db_session())
+        database.add(not_activated_username)
+        database.commit()
+        test_email = not_activated_username.email
+        test_username = not_activated_username.username
+        response = await client.post("/register/new",
+                                     json={"email": test_email,
+                                           "username": test_username,
+                                           }
+                                     )
+        assert response.status_code == 403
+        assert test_username in response.json()["detail"]
+
+
+@pytest.mark.asyncio
 async def test_activate_new_key():
+    """Test standard response for GET request from Activation link sent to email"""
     async with AsyncClient(app=shorty, base_url="https://test") as client:
-        """Test standard response for GET request from KeyActivation link sent to email"""
         database = next(override_db_session())
         test_email = test_activation_link.email
         test_username = test_activation_link.username
@@ -214,12 +278,48 @@ async def test_activate_new_key():
 
 @pytest.mark.asyncio
 async def test_activate_new_key_with_wrong_link():
-    """Test standard response for GET request for KeyActivation with wrong activation link"""
+    """Test standard response for GET request with wrong PATH parameter (activation_key)"""
     async with AsyncClient(app=shorty, base_url="https://test") as client:
-        """Test standard response for GET request with wrong PATH parameter (activation_key)"""
         database = next(override_db_session())
         wrong_activation_link = "/register/activate/test_wrong"
         response = await client.get(wrong_activation_link)
         assert response.status_code == 404
         link_exist = database.query(DbKeys).filter_by(activation_link=wrong_activation_link).first()
         assert link_exist is None
+
+
+@pytest.mark.asyncio
+async def test_register_new_key_with_wrong_credential_env(register_base_url,
+                                                          monkeypatch,
+                                                          ):
+    """Test raise of exception with Using wrong VEnv credentials for smtp.gmail"""
+    async with AsyncClient(app=shorty, base_url=register_base_url) as client:
+        test_env_email = "wrong_email"
+        test_env_key = "wrong_key"
+        monkeypatch.setenv("EMAIL", test_env_email)
+        monkeypatch.setenv("EMAIL_KEY", test_env_key)
+        response = await client.post("/register/new",
+                                     json={"email": "test_wrong_env@gmail.com",
+                                           "username": "test_wrong_env",
+                                           }
+                                     )
+        assert response.status_code == 500
+        assert test_env_email in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_register_new_key_with_not_set_credential_env(register_base_url,
+                                                            monkeypatch,
+                                                            ):
+    """Test raise of exception while Not using VEnv credentials for smtp.gmail"""
+    async with AsyncClient(app=shorty, base_url=register_base_url) as client:
+        monkeypatch.delenv("EMAIL")
+        monkeypatch.delenv("EMAIL_KEY")
+        response = await client.post("/register/new",
+                                     json={"email": "test_no_env@gmail.com",
+                                           "username": "test_no_env",
+                                           }
+                                     )
+        assert os.getenv("EMAIL") is None
+        assert os.getenv("EMAIL_KEY") is None
+        assert response.status_code == 500
