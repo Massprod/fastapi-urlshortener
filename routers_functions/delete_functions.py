@@ -11,7 +11,7 @@ def delete_all_expired_in_table(admin_key: str, db: Session, db_model: str = "al
     """Deletes expired records from given table or all tables of provided DB"""
     call_time = datetime.utcnow()
     chosen_model = db_model.lower().replace(" ", "")
-    if admin_key == os.getenv("admin_key"):
+    if admin_key == os.getenv("SHORTY_ADMIN_KEY"):
         models = [DbKeys, DbShort]
         if chosen_model == "all":
             for _ in models:

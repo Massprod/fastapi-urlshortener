@@ -13,9 +13,9 @@ expire_days_target = 7
 
 
 @pytest.mark.asyncio
-async def test_add_new_random():
+async def test_add_new_random(base_url):
     """Test standard response with correct data"""
-    async with AsyncClient(app=shorty, base_url="http://test") as client:
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
         db = next(override_db_session())
         response_1 = await client.post("/random/add",
                                        json={"origin_url": "https://github.com/Massprod/FastAPI_UrlShort",
@@ -72,9 +72,9 @@ async def test_add_new_random_with_expired_short(base_url,
 
 
 @pytest.mark.asyncio
-async def test_add_new_random_with_broken_url():
+async def test_add_new_random_with_broken_url(base_url):
     """Test standard response with not working Url"""
-    async with AsyncClient(app=shorty, base_url="http://test") as client:
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
         response = await client.post("/random/add",
                                      json={"origin_url": "https://www.reddit.com/testetes",
                                            "short_length": min_length + 2}
@@ -88,9 +88,9 @@ async def test_add_new_random_with_broken_url():
 
 
 @pytest.mark.asyncio
-async def test_add_new_random_with_wrong_length():
+async def test_add_new_random_with_wrong_length(base_url):
     """Test standard response with not supported length"""
-    async with AsyncClient(app=shorty, base_url="http://test") as client:
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
         response_1 = await client.post("/random/add",
                                        json={"origin_url": "https://github.com/Massprod/FastAPI_UrlShort",
                                              "short_length": max_length + 1}
@@ -109,11 +109,11 @@ async def test_add_new_random_with_wrong_length():
 
 
 @pytest.mark.asyncio
-async def test_add_new_random_infinite_loop_break(mocker):
+async def test_add_new_random_infinite_loop_break(mocker, base_url):
     """Test standard behaviour with infinitely creating same random_short
     and running out of all their combinations with given Length.
     Breaking infinite loop of creating short_urls."""
-    async with AsyncClient(app=shorty, base_url="http://test") as client:
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
         database = next(override_db_session())
         test_length = 10
         test_short = "test2552"
@@ -126,7 +126,7 @@ async def test_add_new_random_infinite_loop_break(mocker):
                                              "short_length": test_length}
                                        )
         assert response_1.status_code == 200
-        created_short = "http://test/" + test_short
+        created_short = base_url + test_short
         exist = database.query(DbShort).filter_by(short_url=created_short).first()
         assert exist
         response_2 = await client.post("/random/add",
@@ -139,9 +139,9 @@ async def test_add_new_random_infinite_loop_break(mocker):
 
 
 @pytest.mark.asyncio
-async def test_add_new_random_records_count():
+async def test_add_new_random_records_count(base_url):
     """Test correct function return with selected random_short length"""
-    async with AsyncClient(app=shorty, base_url="http://test") as client:
+    async with AsyncClient(app=shorty, base_url=base_url) as client:
         database = next(override_db_session())
         test_length = 1
         test_quantity = 5
