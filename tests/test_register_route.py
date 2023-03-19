@@ -183,7 +183,6 @@ async def test_register_new_key_with_expired_email():
                                                json={"email": expired_email,
                                                      "username": "not_already_used_name"}
                                                )
-        print(response_exp_email.json())
         database.refresh(expired_email_record)
         updated_email = expired_email_record.email
         updated_email_expire_time = expired_email_record.expire_date
@@ -207,7 +206,6 @@ async def test_register_new_key_with_expired_username():
                                                   json={"email": "not_already_used@gmail.com",
                                                         "username": expired_username}
                                                   )
-        print(response_exp_username.json())
         # changed Email, and it's primary key, so refresh won't work I need NEW object
         updated_username_record = database.query(DbKeys).filter_by(username=expired_username).first()
         updated_username = updated_username_record.username
@@ -264,7 +262,6 @@ async def test_activate_new_key():
                                                  json={"email": test_email,
                                                        "username": test_username}
                                                  )
-        print(register_test_entity.json())
         assert register_test_entity.status_code == 200
         registered = database.query(DbKeys).filter_by(email=test_email).first()
         assert registered
