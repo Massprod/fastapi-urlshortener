@@ -43,9 +43,13 @@ def create_rshort(length: int = 3) -> str:
 
 def create_send_key(receiver: str, link: str, api_key: str) -> bool:
     """Creates and sends Email with activation link in it"""
+    email = os.getenv("EMAIL")
+    email_key = os.getenv("EMAIL_KEY")
+    if email is None or email_key is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail="ENV variables: EMAIL, EMAIL_KEY  can't be empty. "
+                                   "Check if you're set ENV correctly")
     try:
-        email = os.getenv("EMAIL")
-        email_key = os.getenv("EMAIL_KEY")
         msg = MIMEMultipart("alternative")
         html_part = f"""
                         <html>
@@ -74,7 +78,7 @@ def create_send_key(receiver: str, link: str, api_key: str) -> bool:
         return True
     except smtplib.SMTPAuthenticationError:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail="Email sender not Authenticated. Set correct ENV")
+                            detail=f"{email}\n\nEmail sender not Authenticated. Set correct ENV")
     except smtplib.SMTPException:
         return False
 
