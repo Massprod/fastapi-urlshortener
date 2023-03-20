@@ -1,3 +1,4 @@
+from __future__ import annotations  # to use None | bool at del_expire()[88line] with python3.9 or less
 import os
 import smtplib
 import requests
