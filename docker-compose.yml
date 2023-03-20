@@ -4,7 +4,7 @@ version: "3"
 services:
   shorty:
     env_file:
-      - shorty.env
+      - .env
     build: .
     ports:
       - "5000:5000"
