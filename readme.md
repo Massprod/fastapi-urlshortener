@@ -38,6 +38,7 @@ Locally with Docker
 - Simple Unit Testing with good coverage
 
 
+
     1. set ENV
     2. from shorty.py directory:
       run
