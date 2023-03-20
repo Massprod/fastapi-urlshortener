@@ -280,7 +280,7 @@ async def test_show_all_custom_with_cascade_delete_expired_api_key(base_url,
         database.commit()
         test_api_key = show_all_cascade_delete_entity.api_key
         key_exist = database.query(DbKeys).filter_by(api_key=test_api_key).first()
-        admin_key = os.getenv("SHORTY_ADMIN_KEY")
+        admin_key = os.getenv("ADMIN_KEY")
         assert key_exist
         assert key_exist.activated is False
         created_shorts = []

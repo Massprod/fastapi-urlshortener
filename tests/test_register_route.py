@@ -296,8 +296,8 @@ async def test_register_new_key_with_wrong_credential_env(register_base_url,
     async with AsyncClient(app=shorty, base_url=register_base_url) as client:
         test_env_email = "wrong_email"
         test_env_key = "wrong_key"
-        monkeypatch.setenv("SHORTY_EMAIL", test_env_email)
-        monkeypatch.setenv("SHORTY_EMAIL_KEY", test_env_key)
+        monkeypatch.setenv("EMAIL", test_env_email)
+        monkeypatch.setenv("EMAIL_KEY", test_env_key)
         response = await client.post("/register/new",
                                      json={"email": "test_wrong_env@gmail.com",
                                            "username": "test_wrong_env",
@@ -313,13 +313,13 @@ async def test_register_new_key_with_not_set_credential_env(register_base_url,
                                                             ):
     """Test raise of exception while Not using VEnv credentials for smtp.gmail"""
     async with AsyncClient(app=shorty, base_url=register_base_url) as client:
-        monkeypatch.delenv("SHORTY_EMAIL")
-        monkeypatch.delenv("SHORTY_EMAIL_KEY")
+        monkeypatch.delenv("EMAIL")
+        monkeypatch.delenv("EMAIL_KEY")
         response = await client.post("/register/new",
                                      json={"email": "test_no_env@gmail.com",
                                            "username": "test_no_env",
                                            }
                                      )
-        assert os.getenv("SHORTY_EMAIL") is None
-        assert os.getenv("SHORTY_EMAIL_KEY") is None
+        assert os.getenv("EMAIL") is None
+        assert os.getenv("EMAIL_KEY") is None
         assert response.status_code == 500

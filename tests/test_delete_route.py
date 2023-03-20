@@ -15,7 +15,7 @@ async def test_delete_route_with_all_tables(base_url,
         database.add(delete_all_short_expired_entity)
         database.add(delete_all_short_expired_entity)
         database.commit()
-        test_admin_key = os.getenv("SHORTY_ADMIN_KEY")
+        test_admin_key = os.getenv("ADMIN_KEY")
         test_tables = "all"
         test_api_key = delete_all_keys_expired_entity.api_key
         test_short_url = delete_all_short_expired_entity.short_url
@@ -42,7 +42,7 @@ async def test_delete_route_with_one_table(base_url,
         database.add(delete_table_short_expire_entity)
         database.add(delete_table_keys_expire_entity)
         database.commit()
-        test_admin_key = os.getenv("SHORTY_ADMIN_KEY")
+        test_admin_key = os.getenv("ADMIN_KEY")
         test_tables = ["dbkeys", "dbshort"]
         test_short_url = delete_table_short_expire_entity.short_url
         test_api_key = delete_table_keys_expire_entity.api_key
@@ -63,7 +63,7 @@ async def test_delete_route_with_one_table(base_url,
 async def test_delete_route_with_wrong_table(base_url):
     """Test response for deleting expired records with WRONG table name"""
     async with AsyncClient(app=shorty, base_url=base_url) as client:
-        test_admin_key = os.getenv("SHORTY_ADMIN_KEY")
+        test_admin_key = os.getenv("ADMIN_KEY")
         test_table_name = "randomName"
         response = await client.delete("/delete/expired",
                                        headers={"admin-key": test_admin_key,
