@@ -35,8 +35,7 @@ Locally with Docker
                (5000/port by default)
 # Tests
 
-- Simple Unit Testing with good coverage
-
+Simple Unit Testing with good coverage
 
 
     1. set ENV
