@@ -7,7 +7,7 @@
   - create **custom** named Urls and **redirect** from them
   - create **api-key** to expand expire limits and associate **custom** Urls with that key
 ---------------------
-- For documentation simply add - **/docs** at the end of the **path** after **setting it up** (based on [:blue_book:](https://fastapi.tiangolo.com/advanced/extending-openapi/))
+- For documentation add - **/docs** at the end of the **path** after **setting it up** (based on [:blue_book:](https://fastapi.tiangolo.com/features/#automatic-docs))
 # Setup
   Locally with Uvicorn
       
